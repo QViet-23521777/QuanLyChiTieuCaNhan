@@ -2,6 +2,7 @@ import { Timestamp } from 'firebase/firestore';
 
 export interface User{
     uId: string;
+    name: string;
     email: string;
     familyId: string | null;
     role: 'admin' | 'member';
@@ -51,6 +52,7 @@ export interface Transaction{
     date: string | Date;
     userId: string;
     createdAt: Timestamp | Date;
+    updatedAt: Timestamp | Date;
 }
 export interface Album{
     Id: string;
@@ -94,6 +96,7 @@ export interface ChatRoom{
     messageId: string[];
     createdBy: string; 
     createdAt: Timestamp | Date;
+    updatedAt: Timestamp | Date;
 }
 
 export interface Message {
@@ -102,9 +105,10 @@ export interface Message {
     imageUrl?: string | null;
     senderId: string;
     senderName: string;
-    familyId: string;
+    familyId: string[];
     chatroomId: string;
     createdAt: Timestamp | Date;
+    updatedAt: Timestamp | Date;
 }
 
 export interface SocialPost {
@@ -122,6 +126,7 @@ export interface SocialPost {
     commentsId: string[];
     numlike: number;
     numcom: number;
+    updatedAt: Timestamp | Date;
 }
 
 export interface Review {
@@ -131,4 +136,5 @@ export interface Review {
     userId: string;
     userName: string;
     createdAt: Timestamp | Date;
-  }
+    updatedAt: Timestamp | Date;
+}
