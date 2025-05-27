@@ -1,13 +1,14 @@
 import { Timestamp } from 'firebase/firestore';
 
 export interface User{
-    uId: string;
+    Id: string;
     name: string;
     email: string;
     familyId: string | null;
     role: 'admin' | 'member';
     createdAt: Timestamp | Date;
     updatedAt: Timestamp | Date;
+    phone: string;
 }
 
 export interface Family{
@@ -23,12 +24,13 @@ export interface Family{
 export interface Account{
     Id: string;
     name: string;
-    type: 'cash' | 'bank' | 'creadit' | 'saving' | 'others';
+    type: 'cash' | 'bank' | 'credit' | 'saving' | 'others';
     balance: number;
     initialBalance: number;
-    curency: string;
+    currency: string;
     userId: string;
     familyId: string;
+    isActive: boolean;
     createdAt: Timestamp | Date;
     updatedAt: Timestamp | Date;
 }
@@ -54,6 +56,7 @@ export interface Transaction{
     createdAt: Timestamp | Date;
     updatedAt: Timestamp | Date;
 }
+
 export interface Album{
     Id: string;
     name: string;
@@ -105,7 +108,7 @@ export interface Message {
     imageUrl?: string | null;
     senderId: string;
     senderName: string;
-    familyId: string[];
+    recipient: string;
     chatroomId: string;
     createdAt: Timestamp | Date;
     updatedAt: Timestamp | Date;
@@ -137,4 +140,5 @@ export interface Review {
     userName: string;
     createdAt: Timestamp | Date;
     updatedAt: Timestamp | Date;
+    ispublic: boolean;
 }

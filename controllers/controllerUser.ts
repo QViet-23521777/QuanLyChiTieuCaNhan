@@ -1,7 +1,7 @@
 // controllers/userController.ts
 import { Request, Response } from 'express';
-import { User } from '../../models/types';
-import * as userServices from '../../services/userServices';
+import { User } from '../models/types';
+import * as userServices from '../QuanLyTaiChinh-backend/userServices';
 export const getUserField = async ( req: Request, res: Response) =>
 {
   try{

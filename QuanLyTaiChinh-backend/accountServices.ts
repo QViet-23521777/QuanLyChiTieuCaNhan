@@ -52,6 +52,8 @@ Promise<Account[] | null> =>{
         field: 'familyId', operator: '==', value: familyId
     }])
 };  
+//xem xét chủ tài khoản
+//export const checkUser = async(accountId: string, userId: string)
 
 //cập nhật tài khoản
 export const updateAccount = async(accountId: string, accountData: Partial<Account>)

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { Family } from '../../models/types';
-import * as familyServices from '../../services/familyService';
+import { Family } from '../models/types';
+import * as familyServices from '../QuanLyTaiChinh-backend/familyService';
 export const getFamilyField = async ( req: Request, res: Response) => 
 {
     try{
