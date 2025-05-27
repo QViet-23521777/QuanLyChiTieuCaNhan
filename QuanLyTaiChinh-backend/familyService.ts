@@ -94,6 +94,15 @@ export const removeMembers = async (familyId: string, memberId: string)
         await updateDocument(COLLECTION_NAME,familyId, {membersId: updateMember});
     }
 };
+//kiểm tra thành viên có thuộc gia đình không
+export const checkMember = async (familyId: string, memberId: string): Promise<boolean> =>{ 
+    const family = await getFamilybyId(familyId);
+    if(family && family.membersId.includes(memberId))
+    {
+        return true;
+    }
+    return false;
+}
 //lắng nghe thay đổi
 export const listenToFamily = async(userId: string,callback: (user: Family | null) => void ) =>
 { 
