@@ -1,15 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import { getPostBySocialPostId } from '../QuanLyTaiChinh-backend/socialPost';
 import { SocialPost, User } from '../models/types';
-import { AuthenticatedRequest } from '../middleware/auth';
 import { getUserById } from '../QuanLyTaiChinh-backend/userServices';
 import { getFamilybyId } from '../QuanLyTaiChinh-backend/familyService';
 
-export const checkPostAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction) =>
+export const checkPostAccess = async (req: Request, res: Response, next: NextFunction) =>
 {
     try {
                 const currentUser = req.user;
-                const post = await getPostBySocialPostId(req.params.Id);
+                const post = await getPostBySocialPostId(req.params.id);
     
                 if (!currentUser) {
                     return res.status(401).json({ message: 'Chưa đăng nhập' });
@@ -44,11 +43,11 @@ export const checkPostAccess = async (req: AuthenticatedRequest, res: Response, 
             }
 }
 
-export const checkPostCreatorAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction) =>
+export const checkPostCreatorAccess = async (req: Request, res: Response, next: NextFunction) =>
 {
     try {
                 const currentUser = req.user;
-                const post = await getPostBySocialPostId(req.params.Id);
+                const post = await getPostBySocialPostId(req.params.id);
     
                 if (!currentUser) {
                     return res.status(401).json({ message: 'Chưa đăng nhập' });
@@ -73,11 +72,11 @@ export const checkPostCreatorAccess = async (req: AuthenticatedRequest, res: Res
             }
 }
 
-export const checkFamilyPostAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction) =>
+export const checkFamilyPostAccess = async (req: Request, res: Response, next: NextFunction) =>
 {
     try {
                 const currentUser = req.user;
-                const post = await getPostBySocialPostId(req.params.Id);
+                const post = await getPostBySocialPostId(req.params.id);
     
                 if (!currentUser) {
                     return res.status(401).json({ message: 'Chưa đăng nhập' });

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import { 
   getCommentField,
@@ -12,7 +12,6 @@ import {
 import { 
   authenticateToken,
   authorizeRoles,
-  AuthenticatedRequest 
 } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 import { checkCommentAccess } from '../middleware/commentauth';
@@ -60,7 +59,7 @@ const updateCommentValidationRules = [
 
 // Quy tắc validation cho các tham số
 const idValidationRule = [
-  param('Id')
+  param('id')
     .notEmpty()
     .withMessage('ID không được để trống')
     .isString()
@@ -91,10 +90,10 @@ const fieldValidationRule = [
 
 // Middleware kiểm tra quyền truy cập comment
 function checkCommentPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const currentUser = req.user;
   
   if (!currentUser) {
@@ -115,7 +114,7 @@ function checkCommentPermission(
     // Cần check:
     // 1. Comment có thuộc về post mà user có quyền truy cập không
     // 2. User có trong cùng family với tác giả comment không
-    // const comment = await getCommentById(req.params.Id);
+    // const comment = await getCommentById(req.params.id);
     // const post = await getPostById(comment.postId);
     // if (post.familyId !== currentUser.familyId && !post.isPublic) {
     //   return res.status(403).json({
@@ -135,10 +134,10 @@ function checkCommentPermission(
 
 // Middleware kiểm tra quyền truy cập theo user
 /*function checkUserAccessPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const targetUserId = req.params.userId;
   const currentUser = req.user;
   
@@ -177,10 +176,10 @@ function checkCommentPermission(
 
 // Middleware kiểm tra quyền sở hữu comment
 function checkCommentOwnership(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const currentUser = req.user;
   
   if (!currentUser) {
@@ -198,7 +197,7 @@ function checkCommentOwnership(
   // User chỉ có thể cập nhật/xóa comment của chính mình
   if (['family_admin', 'member'].includes(currentUser.role)) {
     // TODO: Thêm logic check user có phải là tác giả của comment này không
-    // const comment = await getCommentById(req.params.Id);
+    // const comment = await getCommentById(req.params.id);
     // if (comment.userId !== currentUser.id) {
     //   // Family admin có thể xóa comment trong family
     //   if (currentUser.role === 'family_admin') {
@@ -224,10 +223,10 @@ function checkCommentOwnership(
 
 // Middleware validate việc tạo comment
 function validateCommentCreation(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const currentUser = req.user;
   const commentData = req.body;
   
@@ -269,42 +268,8 @@ const wrapHandler = (handler: any): express.RequestHandler => {
 
 // ==================== ROUTES ====================
 
-// GET /api/comments/:Id/field/:field - Lấy một field cụ thể của comment
-// Chỉ admin hoặc user có quyền truy cập comment mới được xem
-router.get('/:Id/field/:field',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
-  wrapHandler(checkCommentPermission),
-  wrapHandler(getCommentField)
-);
-
-// GET /api/comments/:Id - Lấy comment theo ID
-// Chỉ admin hoặc user có quyền truy cập comment mới được xem
-router.get('/:Id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(checkCommentPermission),
-  wrapHandler(getCommentById)
-);
-
-// GET /api/comments/user/:userId - Lấy tất cả comment của user
-// Chỉ admin hoặc chính user đó hoặc user cùng family mới được xem
-/*router.get('/user/:userId',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(userIdValidationRule)),
-  wrapHandler(checkUserAccessPermission),
-  wrapHandler(getCommentsByUserId)
-);*/
-
-// GET /api/comments/username/:userName - Lấy tất cả comment theo username
-// Chỉ admin hoặc user có quyền mới được xem
-router.get('/username/:userName',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(userNameValidationRule)),
-  wrapHandler(getCommentsByUserName)
-);
-
 // POST /api/comments - Tạo comment mới
+// POST routes thường không conflict, nhưng tốt nhất đặt trước GET
 // Admin, family_admin và member đều có thể tạo comment
 router.post('/',
   wrapHandler(authenticateToken),
@@ -314,18 +279,58 @@ router.post('/',
   wrapHandler(addComment)
 );
 
-// PUT /api/comments/:Id - Cập nhật comment
+// GET /api/comments/username/:userName - Lấy tất cả comment theo username
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc user có quyền mới được xem
+router.get('/username/:userName',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(userNameValidationRule)),
+  wrapHandler(getCommentsByUserName)
+);
+
+// GET /api/comments/user/:userId - Lấy tất cả comment của user
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc chính user đó hoặc user cùng family mới được xem
+/*router.get('/user/:userId',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(userIdValidationRule)),
+  wrapHandler(checkUserAccessPermission),
+  wrapHandler(getCommentsByUserId)
+);*/
+
+// GET /api/comments/:id/field/:field - Lấy một field cụ thể của comment
+// ✅ ROUTE CỤ THỂ - có nhiều segments, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc user có quyền truy cập comment mới được xem
+router.get('/:id/field/:field',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
+  wrapHandler(checkCommentPermission),
+  wrapHandler(getCommentField)
+);
+
+// GET /api/comments/:id - Lấy comment theo ID
+// ✅ ROUTE TỔNG QUÁT - phải đặt SAU tất cả routes cụ thể
+// Chỉ admin hoặc user có quyền truy cập comment mới được xem
+router.get('/:id',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(idValidationRule)),
+  wrapHandler(checkCommentPermission),
+  wrapHandler(getCommentById)
+);
+
+// PUT /api/comments/:id - Cập nhật comment
+// PUT/DELETE có thể đặt sau GET vì ít conflict hơn
 // Chỉ admin hoặc tác giả của comment mới được cập nhật
-router.put('/:Id',
+router.put('/:id',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest([...idValidationRule, ...updateCommentValidationRules])),
   wrapHandler(checkCommentOwnership),
   wrapHandler(updateComment)
 );
 
-// DELETE /api/comments/:Id - Xóa comment
+// DELETE /api/comments/:id - Xóa comment
 // Chỉ admin hoặc tác giả của comment hoặc family_admin mới được xóa
-router.delete('/:Id',
+router.delete('/:id',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest(idValidationRule)),
   wrapHandler(checkCommentOwnership),

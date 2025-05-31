@@ -1,25 +1,54 @@
+import admin from 'firebase-admin';
 
-import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
-import { getStorage } from 'firebase/storage';
+// Chọn phương thức khởi tạo
+let serviceAccount: any;
 
+try {
+  // Ưu tiên sử dụng environment variables nếu có
+  if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_PRIVATE_KEY) {
+    console.log('Using environment variables for Firebase config');
+    serviceAccount = {
+      type: "service_account",
+      project_id: process.env.FIREBASE_PROJECT_ID,
+      private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+      private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      client_email: process.env.FIREBASE_CLIENT_EMAIL,
+      client_id: process.env.FIREBASE_CLIENT_ID,
+      auth_uri: "https://accounts.google.com/oauth2/auth",
+      token_uri: "https://oauth2.googleapis.com/token",
+      auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+      client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL
+    };
+  } else {
+    // Fallback về file JSON
+    console.log('Using JSON file for Firebase config');
+    serviceAccount = require('../fir-af3f5-firebase-adminsdk-fbsvc-22ee7626ef.json');
+  }
+} catch (error) {
+  console.error('Error loading Firebase service account:', error);
+  throw new Error('Failed to load Firebase configuration');
+}
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBzkkSo0v62weHn5YRak_Q3-SKmpHy4b3w",
-  authDomain: "fir-af3f5.firebaseapp.com",
-  databaseURL: "https://fir-af3f5-default-rtdb.firebaseio.com",
-  projectId: "fir-af3f5",
-  storageBucket: "fir-af3f5.firebasestorage.app",
-  messagingSenderId: "732346107424",
-  appId: "1:732346107424:web:abec1b3b7dd78653951e45",
-  measurementId: "G-WM366XMH3G"
-};
+// Khởi tạo Firebase Admin (chỉ một lần)
+if (!admin.apps.length) {
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      databaseURL: "https://fir-af3f5-default-rtdb.firebaseio.com",
+      storageBucket: "fir-af3f5.firebasestorage.app"
+    });
+    console.log('Firebase Admin SDK initialized successfully');
+  } catch (error) {
+    console.error('Error initializing Firebase Admin SDK:', error);
+    throw error;
+  }
+}
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-const storage = getStorage(app);
+// Export các services để sử dụng
+export const auth = admin.auth();
+export const firestore = admin.firestore();
+export const database = admin.database();
+export const storage = admin.storage();
+export const messaging = admin.messaging(); // Thêm messaging nếu cần
 
-export { db, auth, storage };
-export default app;
+export default admin;

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import { 
   getTransactionField,
@@ -14,7 +14,6 @@ import {
 import { 
   authenticateToken,
   authorizeRoles,
-  AuthenticatedRequest 
 } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 import { createTransaction } from '../QuanLyTaiChinh-backend/transactionServices';
@@ -108,7 +107,7 @@ const updateTransactionValidationRules = [
 ];
 
 const idValidationRule = [
-  param('Id')
+  param('id')
     .notEmpty()
     .withMessage('ID không được để trống')
     .isString()
@@ -152,11 +151,11 @@ const fieldValidationRule = [
 ];
 
 function checkTransactionPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
-  const targetTransactionId = req.params.Id;
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
+  const targetTransactionId = req.params.id;
   const currentUser = req.user;
   
   if (!currentUser) {
@@ -186,10 +185,10 @@ function checkTransactionPermission(
 }
 
 function checkUserPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const targetUserId = req.params.userId;
   const currentUser = req.user;
   
@@ -233,25 +232,37 @@ const wrapHandler = (handler: any): express.RequestHandler => {
   };
 };
 
-// GET /api/transactions/:Id/field/:field - Lấy một field cụ thể của transaction
+// GET /api/transactions/:id/field/:field - Lấy một field cụ thể của transaction
 // Chỉ admin hoặc owner của transaction mới được xem
-router.get('/:Id/field/:field',
+router.get('/:id/field/:field',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
   wrapHandler(checkTransactionPermission),
   wrapHandler(getTransactionField)
 );
 
-// GET /api/transactions/:Id - Lấy transaction theo ID
-// Chỉ admin hoặc owner của transaction mới được xem
-router.get('/:Id',
+// POST /api/transactions - Tạo transaction mới
+// POST routes thường không conflict, nhưng tốt nhất đặt trước GET
+// Admin, family_admin và member đều có thể tạo transaction
+router.post('/',
+  wrapHandler(authenticateToken),
+  wrapHandler(authorizeRoles('admin', 'family_admin', 'member')),
+  wrapHandler(validateRequest(transactionValidationRules)),
+  wrapHandler(createTransaction)
+);
+
+// POST /api/transactions/:id/undo - Hoàn tác transaction
+// ✅ ROUTE CỤ THỂ - có path suffix, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc owner của transaction mới được hoàn tác
+router.post('/:id/undo',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest(idValidationRule)),
   wrapHandler(checkTransactionPermission),
-  wrapHandler(getTransactionById)
+  wrapHandler(undoTransaction)
 );
 
 // GET /api/transactions/account/:accountId - Lấy tất cả transaction theo Account ID
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
 // Chỉ admin hoặc owner của account mới được xem
 router.get('/account/:accountId',
   wrapHandler(authenticateToken),
@@ -261,6 +272,7 @@ router.get('/account/:accountId',
 );
 
 // GET /api/transactions/user/:userId - Lấy tất cả transaction theo User ID
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
 // Chỉ admin hoặc chính user đó hoặc family member mới được xem
 router.get('/user/:userId',
   wrapHandler(authenticateToken),
@@ -270,6 +282,7 @@ router.get('/user/:userId',
 );
 
 // GET /api/transactions/category/:categoryId - Lấy tất cả transaction theo Category ID
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
 // Chỉ admin hoặc member của family có category đó mới được xem
 router.get('/category/:categoryId',
   wrapHandler(authenticateToken),
@@ -279,6 +292,7 @@ router.get('/category/:categoryId',
 );
 
 // GET /api/transactions/type/:type - Lấy tất cả transaction theo type
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
 // Chỉ admin mới được xem tất cả, user khác chỉ xem của mình
 router.get('/type/:type',
   wrapHandler(authenticateToken),
@@ -287,40 +301,33 @@ router.get('/type/:type',
   wrapHandler(getTransactionsByType)
 );
 
-// POST /api/transactions - Tạo transaction mới
-// Admin, family_admin và member đều có thể tạo transaction
-router.post('/',
+// GET /api/transactions/:id - Lấy transaction theo ID
+// ✅ ROUTE TỔNG QUÁT - phải đặt SAU tất cả routes cụ thể
+// Chỉ admin hoặc owner của transaction mới được xem
+router.get('/:id',
   wrapHandler(authenticateToken),
-  wrapHandler(authorizeRoles('admin', 'family_admin', 'member')),
-  wrapHandler(validateRequest(transactionValidationRules)),
-  wrapHandler(createTransaction)
+  wrapHandler(validateRequest(idValidationRule)),
+  wrapHandler(checkTransactionPermission),
+  wrapHandler(getTransactionById)
 );
 
-// PUT /api/transactions/:Id - Cập nhật transaction
+// PUT /api/transactions/:id - Cập nhật transaction
+// PUT/DELETE có thể đặt sau GET vì ít conflict hơn
 // Chỉ admin hoặc owner của transaction mới được cập nhật
-router.put('/:Id',
+router.put('/:id',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest([...idValidationRule, ...updateTransactionValidationRules])),
   wrapHandler(checkTransactionPermission),
   wrapHandler(updateTransaction)
 );
 
-// DELETE /api/transactions/:Id - Xóa transaction
+// DELETE /api/transactions/:id - Xóa transaction
 // Chỉ admin hoặc owner của transaction mới được xóa
-router.delete('/:Id',
+router.delete('/:id',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest(idValidationRule)),
   wrapHandler(checkTransactionPermission),
   wrapHandler(deleteTransaction)
-);
-
-// POST /api/transactions/:Id/undo - Hoàn tác transaction
-// Chỉ admin hoặc owner của transaction mới được hoàn tác
-router.post('/:Id/undo',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(checkTransactionPermission),
-  wrapHandler(undoTransaction)
 );
 
 export default router;

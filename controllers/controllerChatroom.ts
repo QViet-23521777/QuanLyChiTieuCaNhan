@@ -4,7 +4,7 @@ import * as chatRoomServices from '../QuanLyTaiChinh-backend/chatroomServices';
 
 export const getChatRoomField = async (req: Request, res: Response) => {
     try {
-        const chatRoomId = req.params.Id;
+        const chatRoomId = req.params.id;
         const field = req.body.field as keyof ChatRoom;
 
         const value = await chatRoomServices.getChatRoomField(chatRoomId, field);
@@ -33,7 +33,7 @@ export const addChatRoom = async (req: Request, res: Response) => {
 
 export const getChatRoomById = async (req: Request, res: Response) => {
     try {
-        const chatRoomId = req.params.Id;
+        const chatRoomId = req.params.id;
         const chatRoom = await chatRoomServices.getChatRoomById(chatRoomId);
 
         if (!chatRoom) {
@@ -61,7 +61,7 @@ export const getChatRoomsByMemberId = async (req: Request, res: Response) => {
 
 export const updateChatRoom = async (req: Request, res: Response) => {
     try {
-        const chatRoomId = req.params.Id;
+        const chatRoomId = req.params.id;
         const updateData = req.body as Partial<ChatRoom>;
 
         await chatRoomServices.updateChatRoom(chatRoomId, updateData);
@@ -74,7 +74,7 @@ export const updateChatRoom = async (req: Request, res: Response) => {
 
 export const deleteChatRoom = async (req: Request, res: Response) => {
     try {
-        const chatRoomId = req.params.Id;
+        const chatRoomId = req.params.id;
         await chatRoomServices.deleteChatRoom(chatRoomId);
         res.json({ message: "ChatRoom deleted", chatRoomId });
     } catch (error) {
@@ -85,7 +85,7 @@ export const deleteChatRoom = async (req: Request, res: Response) => {
 
 export const getAllMessages = async (req: Request, res: Response) => {
     try {
-        const chatRoomId = req.params.Id;
+        const chatRoomId = req.params.id;
         const messages = await chatRoomServices.getAllMessage(chatRoomId);
         res.json({ messages });
     } catch (error) {

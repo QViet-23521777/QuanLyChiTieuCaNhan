@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import { 
   getCategoryField,
@@ -12,7 +12,6 @@ import {
 import { 
   authenticateToken,
   authorizeRoles,
-  AuthenticatedRequest 
 } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 
@@ -43,7 +42,7 @@ const updateCategoryValidationRules = [
 ];
 
 const idValidationRule = [
-  param('Id')
+  param('id')
     .notEmpty()
     .withMessage('ID không được để trống')
     .isString()
@@ -66,16 +65,16 @@ const typeValidationRule = [
 
 const fieldValidationRule = [
   body('field')
-    .isIn(['Id','name', 'type',  'familyId', 'createdAt', 'updatedAt'])
+    .isIn(['id','name', 'type',  'familyId', 'createdAt', 'updatedAt'])
     .withMessage('Field không hợp lệ')
 ];
 
 function checkCategoryPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
-  const targetCategoryId = req.params.Id;
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
+  const targetCategoryId = req.params.id;
   const currentUser = req.user;
   
   if (!currentUser) {
@@ -104,10 +103,10 @@ function checkCategoryPermission(
 }
 
 function checkFamilyPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const targetFamilyId = req.params.familyId;
   const currentUser = req.user;
   
@@ -149,34 +148,8 @@ const wrapHandler = (handler: any): express.RequestHandler => {
   };
 };
 
-router.get('/:Id/field/:field',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
-  wrapHandler(checkCategoryPermission),
-  wrapHandler(getCategoryField)
-);
-
-router.get('/:Id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(checkCategoryPermission),
-  wrapHandler(getCategoryById)
-);
-
-router.get('/family/:familyId',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(familyIdValidationRule)),
-  wrapHandler(checkFamilyPermission),
-  wrapHandler(getCategoryByFamilyId)
-);
-
-router.get('/family/:familyId/type/:type',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...familyIdValidationRule, ...typeValidationRule])),
-  wrapHandler(checkFamilyPermission),
-  wrapHandler(getCategoryByType)
-);
-
+// POST /api/categories - Tạo category mới
+// POST routes thường không conflict, nhưng tốt nhất đặt trước GET
 router.post('/',
   wrapHandler(authenticateToken),
   wrapHandler(authorizeRoles('admin', 'family_admin', 'member')),
@@ -184,7 +157,45 @@ router.post('/',
   wrapHandler(addCategory)
 );
 
-router.put('/:Id',
+// GET /api/categories/family/:familyId/type/:type - Lấy category theo Family ID và Type
+// ✅ ROUTE CỤ THỂ NHẤT - có nhiều segments nhất, phải đặt TRƯỚC tất cả
+router.get('/family/:familyId/type/:type',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest([...familyIdValidationRule, ...typeValidationRule])),
+  wrapHandler(checkFamilyPermission),
+  wrapHandler(getCategoryByType)
+);
+
+// GET /api/categories/family/:familyId - Lấy category theo Family ID
+// ✅ ROUTE CỤ THỂ - phải đặt TRƯỚC /:id
+router.get('/family/:familyId',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(familyIdValidationRule)),
+  wrapHandler(checkFamilyPermission),
+  wrapHandler(getCategoryByFamilyId)
+);
+
+// GET /api/categories/:id/field/:field - Lấy một field cụ thể của category
+// ✅ ROUTE CỤ THỂ - có nhiều segments, phải đặt TRƯỚC /:id
+router.get('/:id/field/:field',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
+  wrapHandler(checkCategoryPermission),
+  wrapHandler(getCategoryField)
+);
+
+// GET /api/categories/:id - Lấy category theo ID
+// ✅ ROUTE TỔNG QUÁT - phải đặt SAU tất cả routes cụ thể
+router.get('/:id',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(idValidationRule)),
+  wrapHandler(checkCategoryPermission),
+  wrapHandler(getCategoryById)
+);
+
+// PUT /api/categories/:id - Cập nhật category
+// PUT/DELETE có thể đặt sau GET vì ít conflict hơn
+router.put('/:id',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest([...idValidationRule, ...updateCategoryValidationRules])),
   wrapHandler(authorizeRoles('admin', 'family_admin')),
@@ -192,7 +203,8 @@ router.put('/:Id',
   wrapHandler(updateCategory)
 );
 
-router.delete('/:Id',
+// DELETE /api/categories/:id - Xóa category
+router.delete('/:id',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest(idValidationRule)),
   wrapHandler(authorizeRoles('admin', 'family_admin')),

@@ -4,7 +4,7 @@ import * as albumServices from '../QuanLyTaiChinh-backend/albumServices';
 
 export const getAlbumField = async (req: Request, res: Response) => {
     try {
-        const albumId = req.params.Id;
+        const albumId = req.params.id;
         const field = req.body.field as keyof Album;
 
         const value = await albumServices.getAlbumField(albumId, field);
@@ -42,7 +42,7 @@ export const addAlbum = async (req: Request, res: Response) => {
 
 export const getAlbumById = async (req: Request, res: Response) => {
     try {
-        const albumId = req.params.Id;
+        const albumId = req.params.id;
         const album = await albumServices.getAlbumById(albumId);
 
         if (!album) {
@@ -59,7 +59,7 @@ export const getAlbumById = async (req: Request, res: Response) => {
 
 export const updateAlbum = async (req: Request, res: Response) => {
     try {
-        const albumId = req.params.Id;
+        const albumId = req.params.id;
         const updateData = req.body as Partial<Album>;
 
         if (!updateData || Object.keys(updateData).length === 0) {
@@ -83,7 +83,7 @@ export const updateAlbum = async (req: Request, res: Response) => {
 
 export const addPictureToAlbum = async (req: Request, res: Response) => {
     try {
-        const albumId = req.params.Id;
+        const albumId = req.params.id;
         const photoId = req.body.photoId;
 
         if (!photoId) {
@@ -135,7 +135,7 @@ export const getAlbumsByPhotoId = async (req: Request, res: Response) => {
 
 export const deletePhotoFromAlbum = async (req: Request, res: Response) => {
     try {
-        const albumId = req.params.Id;
+        const albumId = req.params.id;
         const photoId = req.body.photoId;
 
         if (!photoId) {
@@ -153,7 +153,7 @@ export const deletePhotoFromAlbum = async (req: Request, res: Response) => {
 
 export const deleteAlbum = async (req: Request, res: Response) => {
     try {
-        const albumId = req.params.Id;
+        const albumId = req.params.id;
 
         const existingAlbum = await albumServices.getAlbumById(albumId);
         if (!existingAlbum) {

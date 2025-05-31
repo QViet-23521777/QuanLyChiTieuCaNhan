@@ -1,5 +1,6 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
+import { Timestamp } from 'firebase/firestore';
 import { 
   getAlbumField,
   addAlbum,
@@ -14,10 +15,7 @@ import {
 import { 
   authenticateToken,
   authorizeRoles,
-  AuthenticatedRequest 
 } from '../middleware/auth';
-import { User } from 'firebase/auth';
-import { getUserById } from '../controllers/controllerUser';
 import { validateRequest } from '../middleware/validation';
 
 const router = express.Router();
@@ -27,8 +25,6 @@ const albumValidationRules = [
   body('name')
     .notEmpty()
     .withMessage('Tên album không được để trống')
-    .isString()
-    .withMessage('Tên album phải là string')
     .isLength({ min: 1, max: 100 })
     .withMessage('Tên album phải từ 1-100 ký tự'),
   body('description')
@@ -62,8 +58,6 @@ const albumValidationRules = [
 const updateAlbumValidationRules = [
   body('name')
     .optional()
-    .isString()
-    .withMessage('Tên album phải là string')
     .isLength({ min: 1, max: 100 })
     .withMessage('Tên album phải từ 1-100 ký tự'),
   body('description')
@@ -72,14 +66,6 @@ const updateAlbumValidationRules = [
     .withMessage('Mô tả phải là string')
     .isLength({ max: 500 })
     .withMessage('Mô tả không được quá 500 ký tự'),
-  body('familyId')
-    .optional()
-    .isString()
-    .withMessage('Family ID phải là string'),
-  body('createdBy')
-    .optional()
-    .isString()
-    .withMessage('Created By phải là string'),
   body('picturesId')
     .optional()
     .isArray()
@@ -109,7 +95,7 @@ const deletePictureValidationRules = [
 ];
 
 const idValidationRule = [
-  param('Id')
+  param('id')
     .notEmpty()
     .withMessage('ID không được để trống')
     .isString()
@@ -139,11 +125,11 @@ const fieldValidationRule = [
 ];
 
 function checkAlbumPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
-  const targetAlbumId = req.params.Id;
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
+  const targetAlbumId = req.params.id;
   const currentUser = req.user;
   
   if (!currentUser) {
@@ -160,8 +146,6 @@ function checkAlbumPermission(
   
   // Family admin và member chỉ có thể truy cập album của gia đình mình
   if (['family_admin', 'member'].includes(currentUser.role)) {
-    // TODO: Thêm logic check user có quyền truy cập album này không
-    // Cần check xem album có thuộc về family của user không
     return next();
   }
   
@@ -172,10 +156,10 @@ function checkAlbumPermission(
 }
 
 function checkFamilyPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const targetFamilyId = req.params.familyId;
   const currentUser = req.user;
   
@@ -194,8 +178,8 @@ function checkFamilyPermission(
   // Family admin và member chỉ có thể xem album của gia đình mình
   if (['family_admin', 'member'].includes(currentUser.role)) {
     // TODO: Thêm logic check user có thuộc family này không
-    checkAlbumPermission(req,res,next);
-    return ;
+    // Cần check xem user có thuộc về targetFamilyId không
+    return next();
   }
   
   return res.status(403).json({
@@ -213,26 +197,16 @@ const wrapHandler = (handler: any): express.RequestHandler => {
   };
 };
 
-// GET /api/albums/:Id/field/:field - Lấy một field cụ thể của album
-// Chỉ admin hoặc member của family mới được xem
-router.get('/:Id/field/:field',
+// POST /api/albums - Tạo album mới
+router.post('/',
   wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
-  wrapHandler(checkAlbumPermission),
-  wrapHandler(getAlbumField)
-);
-
-// GET /api/albums/:Id - Lấy album theo ID
-// Chỉ admin hoặc member của family mới được xem
-router.get('/:Id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(checkAlbumPermission),
-  wrapHandler(getAlbumById)
+  wrapHandler(authorizeRoles('admin', 'family_admin', 'member')),
+  wrapHandler(validateRequest(albumValidationRules)),
+  wrapHandler(addAlbum)
 );
 
 // GET /api/albums/family/:familyId - Lấy tất cả album theo Family ID
-// Chỉ admin hoặc member của family mới được xem
+// ✅ ROUTE CỤ THỂ - phải đặt TRƯỚC /:id
 router.get('/family/:familyId',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest(familyIdValidationRule)),
@@ -241,7 +215,7 @@ router.get('/family/:familyId',
 );
 
 // GET /api/albums/photo/:photoId - Lấy tất cả album chứa photo này
-// Chỉ admin hoặc member của family có quyền truy cập các album chứa photo
+// ✅ ROUTE CỤ THỂ - phải đặt TRƯỚC /:id
 router.get('/photo/:photoId',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest(photoIdValidationRule)),
@@ -249,45 +223,53 @@ router.get('/photo/:photoId',
   wrapHandler(getAlbumsByPhotoId)
 );
 
-// POST /api/albums - Tạo album mới
-// Admin, family_admin và member đều có thể tạo album
-router.post('/',
+// GET /api/albums/:id/field/:field - Lấy một field cụ thể của album
+// ✅ ROUTE CỤ THỂ - có nhiều segments, phải đặt TRƯỚC /:id
+router.get('/:id/field/:field',
   wrapHandler(authenticateToken),
-  wrapHandler(authorizeRoles('admin', 'family_admin', 'member')),
-  wrapHandler(validateRequest(albumValidationRules)),
-  wrapHandler(addAlbum)
-);
-
-// PUT /api/albums/:Id - Cập nhật album
-// Chỉ admin hoặc member của family mới được cập nhật
-router.put('/:Id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...updateAlbumValidationRules])),
+  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
   wrapHandler(checkAlbumPermission),
-  wrapHandler(updateAlbum)
+  wrapHandler(getAlbumField)
 );
 
-// POST /api/albums/:Id/picture - Thêm ảnh vào album
-// Chỉ admin hoặc member của family mới được thêm ảnh
-router.post('/:Id/picture',
+// POST /api/albums/:id/picture - Thêm ảnh vào album
+// ✅ ROUTE CỤ THỂ - có nhiều segments, phải đặt TRƯỚC /:id
+router.post('/:id/picture',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest([...idValidationRule, ...addPictureValidationRules])),
   wrapHandler(checkAlbumPermission),
   wrapHandler(addPictureToAlbum)
 );
 
-// DELETE /api/albums/:Id/picture - Xóa ảnh khỏi album
-// Chỉ admin hoặc member của family mới được xóa ảnh
-router.delete('/:Id/picture',
+// DELETE /api/albums/:id/picture - Xóa ảnh khỏi album
+// ✅ ROUTE CỤ THỂ - có nhiều segments, phải đặt TRƯỚC /:id
+router.delete('/:id/picture',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest([...idValidationRule, ...deletePictureValidationRules])),
   wrapHandler(checkAlbumPermission),
   wrapHandler(deletePhotoFromAlbum)
 );
 
-// DELETE /api/albums/:Id - Xóa album
-// Chỉ admin hoặc member của family mới được xóa
-router.delete('/:Id',
+// GET /api/albums/:id - Lấy album theo ID
+// ✅ ROUTE TỔNG QUÁT - phải đặt SAU tất cả routes cụ thể
+router.get('/:id',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(idValidationRule)),
+  wrapHandler(checkAlbumPermission),
+  wrapHandler(getAlbumById)
+);
+
+// PUT /api/albums/:id - Cập nhật album
+// PUT/DELETE có thể đặt sau GET vì ít conflict hơn
+router.put('/:id',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest([...idValidationRule, ...updateAlbumValidationRules])),
+  wrapHandler(checkAlbumPermission),
+  wrapHandler(updateAlbum)
+);
+
+// DELETE /api/albums/:id - Xóa album
+router.delete('/:id',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest(idValidationRule)),
   wrapHandler(checkAlbumPermission),

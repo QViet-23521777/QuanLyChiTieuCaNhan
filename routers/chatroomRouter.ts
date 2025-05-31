@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import { 
   getChatRoomField,
@@ -13,7 +13,6 @@ import {
 import { 
   authenticateToken,
   authorizeRoles,
-  AuthenticatedRequest 
 } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 import { checkChatroomAccess, checkAdminAccess } from '../middleware/chatroomauth';
@@ -85,7 +84,7 @@ const addMessageValidationRules = [
 ];
 
 const idValidationRule = [
-  param('Id')
+  param('id')
     .notEmpty()
     .withMessage('ID không được để trống')
     .isString()
@@ -107,11 +106,11 @@ const fieldValidationRule = [
 ];
 
 function checkChatRoomPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
-  const targetChatRoomId = req.params.Id;
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
+  const targetChatRoomId = req.params.id;
   const currentUser = req.user;
   
   if (!currentUser) {
@@ -148,10 +147,10 @@ function checkChatRoomPermission(
 }
 
 function checkMemberAccessPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const targetMemberId = req.params.memberId;
   const currentUser = req.user;
   
@@ -185,10 +184,10 @@ function checkMemberAccessPermission(
 }
 
 function checkChatRoomOwnership(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const currentUser = req.user;
   
   if (!currentUser) {
@@ -206,7 +205,7 @@ function checkChatRoomOwnership(
   // Chỉ creator hoặc family_admin mới có thể cập nhật/xóa chatroom
   if (['family_admin', 'member'].includes(currentUser.role)) {
     // TODO: Thêm logic check user có phải là creator của chatroom này không
-    // const chatRoom = await getChatRoomById(req.params.Id);
+    // const chatRoom = await getChatRoomById(req.params.id);
     // if (chatRoom.createdBy !== currentUser.id && currentUser.role !== 'family_admin') {
     //   return res.status(403).json({
     //     success: false,
@@ -224,10 +223,10 @@ function checkChatRoomOwnership(
 }
 
 function checkMessagePermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const currentUser = req.user;
   
   if (!currentUser) {
@@ -272,43 +271,8 @@ const wrapHandler = (handler: any): express.RequestHandler => {
   };
 };
 
-// GET /api/chatrooms/:Id/field/:field - Lấy một field cụ thể của chatroom
-// Chỉ admin hoặc member của chatroom mới được xem
-router.get('/:Id/field/:field',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
-  wrapHandler(checkChatRoomPermission),
-  wrapHandler(getChatRoomField)
-);
-
-// GET /api/chatrooms/:Id - Lấy chatroom theo ID
-// Chỉ admin hoặc member của chatroom mới được xem
-router.get('/:Id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(checkChatRoomPermission),
-  wrapHandler(getChatRoomById)
-);
-
-// GET /api/chatrooms/member/:memberId - Lấy tất cả chatroom của member
-// Chỉ admin hoặc chính member đó mới được xem
-router.get('/member/:memberId',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(memberIdValidationRule)),
-  wrapHandler(checkMemberAccessPermission),
-  wrapHandler(getChatRoomsByMemberId)
-);
-
-// GET /api/chatrooms/:Id/messages - Lấy tất cả tin nhắn trong chatroom
-// Chỉ admin hoặc member của chatroom mới được xem
-router.get('/:Id/messages',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(checkChatRoomPermission),
-  wrapHandler(getAllMessages)
-);
-
 // POST /api/chatrooms - Tạo chatroom mới
+// POST routes thường không conflict, nhưng tốt nhất đặt trước GET
 // Admin, family_admin và member đều có thể tạo chatroom
 router.post('/',
   wrapHandler(authenticateToken),
@@ -317,25 +281,8 @@ router.post('/',
   wrapHandler(addChatRoom)
 );
 
-// PUT /api/chatrooms/:Id - Cập nhật chatroom
-// Chỉ admin hoặc creator của chatroom hoặc family_admin mới được cập nhật
-router.put('/:Id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...updateChatRoomValidationRules])),
-  wrapHandler(checkChatRoomOwnership),
-  wrapHandler(updateChatRoom)
-);
-
-// DELETE /api/chatrooms/:Id - Xóa chatroom
-// Chỉ admin hoặc creator của chatroom hoặc family_admin mới được xóa
-router.delete('/:Id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(checkChatRoomOwnership),
-  wrapHandler(deleteChatRoom)
-);
-
 // POST /api/chatrooms/message - Thêm message vào chatroom
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
 // Admin, family_admin và member đều có thể thêm message (nếu là thành viên của chatroom)
 router.post('/message',
   wrapHandler(authenticateToken),
@@ -343,6 +290,65 @@ router.post('/message',
   wrapHandler(validateRequest(addMessageValidationRules)),
   wrapHandler(checkMessagePermission),
   wrapHandler(addMessageToChatRoom)
+);
+
+// GET /api/chatrooms/member/:memberId - Lấy tất cả chatroom của member
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc chính member đó mới được xem
+router.get('/member/:memberId',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(memberIdValidationRule)),
+  wrapHandler(checkMemberAccessPermission),
+  wrapHandler(getChatRoomsByMemberId)
+);
+
+// GET /api/chatrooms/:id/field/:field - Lấy một field cụ thể của chatroom
+// ✅ ROUTE CỤ THỂ - có nhiều segments, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc member của chatroom mới được xem
+router.get('/:id/field/:field',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
+  wrapHandler(checkChatRoomPermission),
+  wrapHandler(getChatRoomField)
+);
+
+// GET /api/chatrooms/:id/messages - Lấy tất cả tin nhắn trong chatroom
+// ✅ ROUTE CỤ THỂ - có nhiều segments, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc member của chatroom mới được xem
+router.get('/:id/messages',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(idValidationRule)),
+  wrapHandler(checkChatRoomPermission),
+  wrapHandler(getAllMessages)
+);
+
+// GET /api/chatrooms/:id - Lấy chatroom theo ID
+// ✅ ROUTE TỔNG QUÁT - phải đặt SAU tất cả routes cụ thể
+// Chỉ admin hoặc member của chatroom mới được xem
+router.get('/:id',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(idValidationRule)),
+  wrapHandler(checkChatRoomPermission),
+  wrapHandler(getChatRoomById)
+);
+
+// PUT /api/chatrooms/:id - Cập nhật chatroom
+// PUT/DELETE có thể đặt sau GET vì ít conflict hơn
+// Chỉ admin hoặc creator của chatroom hoặc family_admin mới được cập nhật
+router.put('/:id',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest([...idValidationRule, ...updateChatRoomValidationRules])),
+  wrapHandler(checkChatRoomOwnership),
+  wrapHandler(updateChatRoom)
+);
+
+// DELETE /api/chatrooms/:id - Xóa chatroom
+// Chỉ admin hoặc creator của chatroom hoặc family_admin mới được xóa
+router.delete('/:id',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(idValidationRule)),
+  wrapHandler(checkChatRoomOwnership),
+  wrapHandler(deleteChatRoom)
 );
 
 export default router;

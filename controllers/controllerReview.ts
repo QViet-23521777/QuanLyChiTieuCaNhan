@@ -4,7 +4,7 @@ import * as reviewServices from '../QuanLyTaiChinh-backend/reviewServices';
 
 export const getReviewField = async (req: Request, res: Response) => {
     try {
-        const reviewId = req.params.Id;
+        const reviewId = req.params.id;
         const field = req.body.field as keyof Review;
 
         const value = await reviewServices.getReviewField(reviewId, field);
@@ -34,7 +34,7 @@ export const addReview = async (req: Request, res: Response) => {
 
 export const getReviewById = async (req: Request, res: Response) => {
     try {
-        const reviewId = req.params.Id;
+        const reviewId = req.params.id;
         const review = await reviewServices.getReviewById(reviewId);
 
         if (!review) {
@@ -62,7 +62,7 @@ export const getReviewsByUserId = async (req: Request, res: Response) => {
 
 export const updateReview = async (req: Request, res: Response) => {
     try {
-        const reviewId = req.params.Id;
+        const reviewId = req.params.id;
         const updateData = req.body as Partial<Review>;
 
         await reviewServices.updateReview(reviewId, updateData);
@@ -75,7 +75,7 @@ export const updateReview = async (req: Request, res: Response) => {
 
 export const deleteReview = async (req: Request, res: Response) => {
     try {
-        const reviewId = req.params.Id;
+        const reviewId = req.params.id;
         await reviewServices.deleteReview(reviewId);
         res.json({ message: 'Review deleted successfully' });
     } catch (error) {

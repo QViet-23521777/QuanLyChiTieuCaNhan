@@ -1,14 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { getMessageById } from '../QuanLyTaiChinh-backend/messageServices';
 import { Message } from '../models/types';
-import { AuthenticatedRequest } from '../middleware/auth';
 import { getChatRoomByMemberId, getChatRoomById } from '../QuanLyTaiChinh-backend/chatroomServices'
 
-export const checkMessageAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction) =>
+export const checkMessageAccess = async (req: Request, res: Response, next: NextFunction) =>
 {
     try {
                 const currentUser = req.user;
-                const message = await getMessageById(req.params.Id);
+                const message = await getMessageById(req.params.id);
     
                 if (!currentUser) {
                     return res.status(401).json({ message: 'Chưa đăng nhập' });
@@ -29,11 +28,11 @@ export const checkMessageAccess = async (req: AuthenticatedRequest, res: Respons
             }
 }
 
-export const checkMemberMessageAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction) =>
+export const checkMemberMessageAccess = async (req: Request, res: Response, next: NextFunction) =>
 {
     try {
                 const currentUser = req.user;
-                const message = await getMessageById(req.params.Id);
+                const message = await getMessageById(req.params.id);
     
                 if (!currentUser) {
                     return res.status(401).json({ message: 'Chưa đăng nhập' });

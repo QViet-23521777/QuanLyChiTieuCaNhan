@@ -1,14 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { getAccountById } from '../QuanLyTaiChinh-backend/accountServices';
 import { Account } from '../models/types';
-import { AuthenticatedRequest } from '../middleware/auth';
 
 
-export const checkAccountAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction) =>
+export const checkAccountAccess = async (req: Request, res: Response, next: NextFunction) =>
 {
     try {
             const currentUser = req.user;
-            const account = await getAccountById(req.params.Id);
+            const account = await getAccountById(req.params.id);
 
             if (!currentUser) {
                 return res.status(401).json({ message: 'Chưa đăng nhập' });

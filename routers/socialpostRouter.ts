@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import { 
   getSocialField,
@@ -17,7 +17,6 @@ import {
 import { 
   authenticateToken,
   authorizeRoles,
-  AuthenticatedRequest 
 } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 import { checkPostAccess, checkPostCreatorAccess, checkFamilyPostAccess } from '../middleware/socialpostauth';
@@ -123,7 +122,7 @@ const updateSocialPostValidationRules = [
 
 // Quy tắc validation cho các tham số
 const idValidationRule = [
-  param('Id')
+  param('id')
     .notEmpty()
     .withMessage('ID không được để trống')
     .isString()
@@ -189,10 +188,10 @@ const commentValidationRules = [
 
 // Middleware kiểm tra quyền truy cập post
 function checkPostPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const currentUser = req.user;
   
   if (!currentUser) {
@@ -213,7 +212,7 @@ function checkPostPermission(
     // Cần check:
     // 1. Post có thuộc về family của user không
     // 2. Post có phải là public không
-    // const post = await getPostById(req.params.Id);
+    // const post = await getPostById(req.params.id);
     // if (post.familyId !== currentUser.familyId && !post.isPublic) {
     //   return res.status(403).json({
     //     success: false,
@@ -232,10 +231,10 @@ function checkPostPermission(
 
 // Middleware kiểm tra quyền truy cập theo family
 /*function checkFamilyAccessPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const targetFamilyId = req.params.familyId;
   const currentUser = req.user;
   
@@ -271,10 +270,10 @@ function checkPostPermission(
 
 // Middleware kiểm tra quyền sở hữu post
 function checkPostOwnership(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const currentUser = req.user;
   
   if (!currentUser) {
@@ -292,7 +291,7 @@ function checkPostOwnership(
   // User chỉ có thể cập nhật/xóa post của chính mình
   if (['family_admin', 'member'].includes(currentUser.role)) {
     // TODO: Thêm logic check user có phải là tác giả của post này không
-    // const post = await getPostById(req.params.Id);
+    // const post = await getPostById(req.params.id);
     // if (post.createdBy !== currentUser.id) {
     //   // Family admin có thể xóa post trong family
     //   if (currentUser.role === 'family_admin' && post.familyId === currentUser.familyId) {
@@ -315,10 +314,10 @@ function checkPostOwnership(
 
 // Middleware validate việc tạo post
 function validatePostCreation(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const currentUser = req.user;
   const postData = req.body;
   
@@ -350,10 +349,10 @@ function validatePostCreation(
 
 // Middleware validate like/unlike action
 function validateLikeAction(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const currentUser = req.user;
   const { userId } = req.body;
   
@@ -386,50 +385,8 @@ const wrapHandler = (handler: any): express.RequestHandler => {
 
 // ==================== ROUTES ====================
 
-// GET /api/social-posts/:Id/field/:field - Lấy một field cụ thể của post
-// Chỉ admin hoặc user có quyền truy cập post mới được xem
-router.get('/:Id/field/:field',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
-  wrapHandler(checkPostPermission),
-  wrapHandler(getSocialField)
-);
-
-// GET /api/social-posts/:Id - Lấy post theo ID
-// Chỉ admin hoặc user có quyền truy cập post mới được xem
-router.get('/:Id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(checkPostPermission),
-  wrapHandler(getPostById)
-);
-
-// GET /api/social-posts/photo/:photoId - Lấy tất cả post theo photo ID
-// Chỉ admin hoặc family member mới được xem
-router.get('/photo/:photoId',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(photoIdValidationRule)),
-  wrapHandler(getPostsByPhotoId)
-);
-
-// GET /api/social-posts/transaction/:transactionId - Lấy tất cả post theo transaction ID
-// Chỉ admin hoặc family member mới được xem
-router.get('/transaction/:transactionId',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(transactionIdValidationRule)),
-  wrapHandler(getPostsByTransactionId)
-);
-
-// GET /api/social-posts/family/:familyId - Lấy tất cả post của family
-// Chỉ admin hoặc member của family mới được xem
-/*router.get('/family/:familyId',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(familyIdValidationRule)),
-  wrapHandler(checkFamilyAccessPermission),
-  wrapHandler(getPostsByFamilyId)
-);*/
-
 // POST /api/social-posts - Tạo post mới
+// POST routes thường không conflict, nhưng tốt nhất đặt trước GET
 // Admin, family_admin và member đều có thể tạo post
 router.post('/',
   wrapHandler(authenticateToken),
@@ -439,25 +396,8 @@ router.post('/',
   wrapHandler(addSocialPost)
 );
 
-// PUT /api/social-posts/:Id - Cập nhật post
-// Chỉ admin hoặc tác giả của post mới được cập nhật
-router.put('/:Id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...updateSocialPostValidationRules])),
-  wrapHandler(checkPostOwnership),
-  wrapHandler(updatePost)
-);
-
-// DELETE /api/social-posts/:Id - Xóa post
-// Chỉ admin hoặc tác giả của post hoặc family_admin mới được xóa
-router.delete('/:Id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(checkPostOwnership),
-  wrapHandler(deletePost)
-);
-
 // POST /api/social-posts/like - Like post
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
 // Tất cả user đã đăng nhập đều có thể like
 router.post('/like',
   wrapHandler(authenticateToken),
@@ -468,6 +408,7 @@ router.post('/like',
 );
 
 // POST /api/social-posts/unlike - Unlike post
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
 // Tất cả user đã đăng nhập đều có thể unlike
 router.post('/unlike',
   wrapHandler(authenticateToken),
@@ -478,6 +419,7 @@ router.post('/unlike',
 );
 
 // POST /api/social-posts/comment - Thêm comment vào post
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
 // Tất cả user đã đăng nhập đều có thể comment
 router.post('/comment',
   wrapHandler(authenticateToken),
@@ -487,12 +429,80 @@ router.post('/comment',
 );
 
 // DELETE /api/social-posts/comment - Xóa comment khỏi post
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
 // Chỉ admin hoặc tác giả comment hoặc tác giả post mới được xóa
 router.delete('/comment',
   wrapHandler(authenticateToken),
   wrapHandler(authorizeRoles('admin', 'family_admin', 'member')),
   wrapHandler(validateRequest(commentValidationRules)),
   wrapHandler(deleteCommentPost)
+);
+
+// GET /api/social-posts/photo/:photoId - Lấy tất cả post theo photo ID
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc family member mới được xem
+router.get('/photo/:photoId',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(photoIdValidationRule)),
+  wrapHandler(getPostsByPhotoId)
+);
+
+// GET /api/social-posts/transaction/:transactionId - Lấy tất cả post theo transaction ID
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc family member mới được xem
+router.get('/transaction/:transactionId',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(transactionIdValidationRule)),
+  wrapHandler(getPostsByTransactionId)
+);
+
+// GET /api/social-posts/family/:familyId - Lấy tất cả post của family
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc member của family mới được xem
+/*router.get('/family/:familyId',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(familyIdValidationRule)),
+  wrapHandler(checkFamilyAccessPermission),
+  wrapHandler(getPostsByFamilyId)
+);*/
+
+// GET /api/social-posts/:id/field/:field - Lấy một field cụ thể của post
+// ✅ ROUTE CỤ THỂ - có nhiều segments, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc user có quyền truy cập post mới được xem
+router.get('/:id/field/:field',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
+  wrapHandler(checkPostPermission),
+  wrapHandler(getSocialField)
+);
+
+// GET /api/social-posts/:id - Lấy post theo ID
+// ✅ ROUTE TỔNG QUÁT - phải đặt SAU tất cả routes cụ thể
+// Chỉ admin hoặc user có quyền truy cập post mới được xem
+router.get('/:id',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(idValidationRule)),
+  wrapHandler(checkPostPermission),
+  wrapHandler(getPostById)
+);
+
+// PUT /api/social-posts/:id - Cập nhật post
+// PUT/DELETE có thể đặt sau GET vì ít conflict hơn
+// Chỉ admin hoặc tác giả của post mới được cập nhật
+router.put('/:id',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest([...idValidationRule, ...updateSocialPostValidationRules])),
+  wrapHandler(checkPostOwnership),
+  wrapHandler(updatePost)
+);
+
+// DELETE /api/social-posts/:id - Xóa post
+// Chỉ admin hoặc tác giả của post hoặc family_admin mới được xóa
+router.delete('/:id',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(idValidationRule)),
+  wrapHandler(checkPostOwnership),
+  wrapHandler(deletePost)
 );
 
 export default router;

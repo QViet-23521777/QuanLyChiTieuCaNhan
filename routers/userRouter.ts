@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import { 
   getUserField,
@@ -10,8 +10,7 @@ import {
 } from '../controllers/controllerUser';
 import { 
   authenticateToken,
-  authorizeRoles,
-  AuthenticatedRequest 
+  authorizeRoles, 
 } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 
@@ -55,7 +54,7 @@ const updateUserValidationRules = [
 ];
 
 const idValidationRule = [
-  param('Id')
+  param('id')
     .notEmpty()
     .withMessage('ID không được để trống')
     .isString()
@@ -69,11 +68,11 @@ const fieldValidationRule = [
 ];
 
 function checkUserPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
-  const targetUserId = req.params.Id;
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
+  const targetUserId = req.params.id;
   const currentUser = req.user;
   
   if (!currentUser) {
@@ -109,34 +108,8 @@ const wrapHandler = (handler: any): express.RequestHandler => {
 };
 
 
-// GET /api/users/:Id/field/:field - Lấy một field cụ thể của user
-// Chỉ admin hoặc chính user đó mới được xem
-router.get('/:Id/field/:field',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
-  wrapHandler(checkUserPermission),
-  wrapHandler(getUserField)
-);
-
-// GET /api/users/:Id - Lấy user theo ID
-// Chỉ admin hoặc chính user đó mới được xem
-router.get('/:Id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(checkUserPermission),
-  wrapHandler(getUserById)
-);
-
-// GET /api/users/family/:Id - Lấy user theo Family ID  
-// Chỉ member trong family hoặc admin mới được xem
-router.get('/family/:Id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(authorizeRoles('admin', 'family_admin', 'member')),
-  wrapHandler(getUserByFamilyId)
-);
-
 // POST /api/users - Tạo user mới
+// POST routes thường không conflict, nhưng tốt nhất đặt trước GET
 // Chỉ admin mới được tạo user
 router.post('/',
   wrapHandler(authenticateToken),
@@ -145,18 +118,49 @@ router.post('/',
   wrapHandler(addUser)
 );
 
-// PUT /api/users/:Id - Cập nhật user
+// GET /api/users/family/:id - Lấy user theo Family ID
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
+// Chỉ member trong family hoặc admin mới được xem
+router.get('/family/:id',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(idValidationRule)),
+  wrapHandler(authorizeRoles('admin', 'family_admin', 'member')),
+  wrapHandler(getUserByFamilyId)
+);
+
+// GET /api/users/:id/field/:field - Lấy một field cụ thể của user
+// ✅ ROUTE CỤ THỂ - có nhiều segments, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc chính user đó mới được xem
+router.get('/:id/field/:field',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
+  wrapHandler(checkUserPermission),
+  wrapHandler(getUserField)
+);
+
+// GET /api/users/:id - Lấy user theo ID
+// ✅ ROUTE TỔNG QUÁT - phải đặt SAU tất cả routes cụ thể
+// Chỉ admin hoặc chính user đó mới được xem
+router.get('/:id',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(idValidationRule)),
+  wrapHandler(checkUserPermission),
+  wrapHandler(getUserById)
+);
+
+// PUT /api/users/:id - Cập nhật user
+// PUT/DELETE có thể đặt sau GET vì ít conflict hơn
 // Chỉ admin hoặc chính user đó mới được cập nhật
-router.put('/:Id',
+router.put('/:id',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest([...idValidationRule, ...updateUserValidationRules])),
   wrapHandler(checkUserPermission),
   wrapHandler(updateUser)
 );
 
-// DELETE /api/users/:Id - Xóa user
+// DELETE /api/users/:id - Xóa user
 // Chỉ admin mới được xóa user
-router.delete('/:Id',
+router.delete('/:id',
   wrapHandler(authenticateToken),
   wrapHandler(authorizeRoles('admin')),
   wrapHandler(validateRequest(idValidationRule)),

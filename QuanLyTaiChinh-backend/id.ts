@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase/firestore';
-import { db } from '../BE/firebase';
+import { firestore } from '../BE/firebase';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 //tạo ID duy nhất tuần tự
 export const generateSequentialId = (prefix?: string): string => {
@@ -41,20 +41,26 @@ export const generateEntitySequentialId = (type:
     return generateSequentialId(prefixMap[type]);
   };
   //lấy ID lớn nhất
-  export const getLastId = async (collectionName: string, idFieldName: string = 'Id'): Promise<string | null> => {
-    try {
-      const collectionRef = collection(db, collectionName);
-      const q = query(collectionRef, orderBy(idFieldName, 'desc'), limit(1));
-      const querySnapshot = await getDocs(q);
-      
-      if (!querySnapshot.empty) {
-        const lastDoc = querySnapshot.docs[0];
-        return lastDoc.data()[idFieldName];
-      }
-      
-      return null;
-    } catch (error) {
-      console.error(`Lỗi khi lấy ID cuối cùng từ ${collectionName}:`, error);
-      return null;
+  export const getLastId = async (
+  collectionName: string, 
+  idFieldName: string = 'Id'
+): Promise<string | null> => {
+  try {
+    // Sử dụng Firebase Admin SDK
+    const collectionRef = firestore.collection(collectionName);
+    const querySnapshot = await collectionRef
+      .orderBy(idFieldName, 'desc')
+      .limit(1)
+      .get();
+           
+    if (!querySnapshot.empty) {
+      const lastDoc = querySnapshot.docs[0];
+      return lastDoc.data()[idFieldName];
     }
-  };
+           
+    return null;
+  } catch (error) {
+    console.error(`Lỗi khi lấy ID cuối cùng từ ${collectionName}:`, error);
+    return null;
+  }
+};

@@ -4,7 +4,7 @@ import * as messageServices from '../QuanLyTaiChinh-backend/messageServices';
 
 export const getMessageField = async (req: Request, res: Response) => {
     try {
-        const messageId = req.params.Id;
+        const messageId = req.params.id;
         const field = req.body.field as keyof Message;
 
         const value = await messageServices.getMessageField(messageId, field);
@@ -39,7 +39,7 @@ export const addMessage = async (req: Request, res: Response) => {
 
 export const getMessageById = async (req: Request, res: Response) => {
     try {
-        const messageId = req.params.Id;
+        const messageId = req.params.id;
         const message = await messageServices.getMessageById(messageId);
 
         if (!message) {
@@ -89,7 +89,7 @@ export const getMessagesByChatRoom = async (req: Request, res: Response) => {
 
 export const updateMessage = async (req: Request, res: Response) => {
     try {
-        const messageId = req.params.Id;
+        const messageId = req.params.id;
         const updateData = req.body as Partial<Message>;
 
         await messageServices.updateMessage(messageId, updateData);
@@ -102,7 +102,7 @@ export const updateMessage = async (req: Request, res: Response) => {
 
 export const deleteMessage = async (req: Request, res: Response) => {
     try {
-        const messageId = req.params.Id;
+        const messageId = req.params.id;
 
         await messageServices.deleteMesage(messageId);
         res.json({ message: "Message deleted", messageId });

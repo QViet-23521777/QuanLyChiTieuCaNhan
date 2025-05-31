@@ -71,7 +71,7 @@ export const addFaimly = async ( req: Request, res: Response) =>
 export const addMember = async ( req: Request, res: Response) =>
 {
     try{
-        const fId = req.params.Id;
+        const fId = req.params.id;
         const uId = req.body.memberId;
         if(!uId)
         {
@@ -91,7 +91,7 @@ export const addMember = async ( req: Request, res: Response) =>
 export const deleteUser = async ( req: Request, res: Response) =>
 {
     try{
-        const fId = req.params.Id;
+        const fId = req.params.id;
         const uId = req.body.memberId;
 
         if (!uId) {
@@ -125,12 +125,12 @@ export const updateFamily = async ( req: Request, res: Response) =>
 {
     try{
         const data = req.body as Partial<Family>;
-        if(!familyServices.getFamilybyId(req.params.Id))
+        if(!familyServices.getFamilybyId(req.params.id))
         {
             res.status(404).json({error :'Family is undefined'});
             return;
         }
-        await familyServices.updateFamily(req.params.Id,data);
+        await familyServices.updateFamily(req.params.id,data);
         res.json({ message: "Family updated successfully" });
     }
     catch (error) {
@@ -142,7 +142,7 @@ export const updateFamily = async ( req: Request, res: Response) =>
 export const deleteFamily = async ( req: Request, res: Response) =>
 {
     try{
-        const fId = req.params.Id;
+        const fId = req.params.id;
         const family = await familyServices.getFamilybyId(fId);
         if(!family || !fId)
         {

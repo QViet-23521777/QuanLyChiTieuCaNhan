@@ -1,13 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { getTransactionById } from '../QuanLyTaiChinh-backend/transactionServices';
 import { Transaction } from '../models/types';
-import { AuthenticatedRequest } from '../middleware/auth';
 
-export const checkTransactionAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction) =>
+export const checkTransactionAccess = async (req: Request, res: Response, next: NextFunction) =>
 {
     try {
             const currentUser = req.user;
-            const tran = await getTransactionById(req.params.Id);
+            const tran = await getTransactionById(req.params.id);
 
             if (!currentUser) {
                 return res.status(401).json({ message: 'Chưa đăng nhập' });

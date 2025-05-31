@@ -4,7 +4,7 @@ import * as categoryServices from '../QuanLyTaiChinh-backend/categoryServices';
 
 export const getCategoryField = async (req: Request, res: Response) => {
     try {
-        const categoryId = req.params.Id;
+        const categoryId = req.params.id;
         const field = req.body.field as keyof Category;
 
         const value = await categoryServices.getCategoryField(categoryId, field);
@@ -42,7 +42,7 @@ export const addCategory = async (req: Request, res: Response) => {
 
 export const getCategoryById = async (req: Request, res: Response) => {
     try {
-        const categoryId = req.params.Id;
+        const categoryId = req.params.id;
         const category = await categoryServices.getCategoryById(categoryId);
 
         if (!category) {
@@ -99,7 +99,7 @@ export const getCategoryByType = async (req: Request, res: Response) => {
 
 export const updateCategory = async (req: Request, res: Response) => {
     try {
-        const categoryId = req.params.Id;
+        const categoryId = req.params.id;
         const updateData = req.body as Partial<Category>;
 
         if (!updateData || Object.keys(updateData).length === 0) {
@@ -123,7 +123,7 @@ export const updateCategory = async (req: Request, res: Response) => {
 
 export const deleteCategory = async (req: Request, res: Response) => {
     try {
-        const categoryId = req.params.Id;
+        const categoryId = req.params.id;
 
         const existingCategory = await categoryServices.getCategoryById(categoryId);
         if (!existingCategory) {

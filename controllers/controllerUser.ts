@@ -6,7 +6,7 @@ export const getUserField = async ( req: Request, res: Response) =>
 {
   try{
     const field = req.params.field as keyof User;
-    const id = req.params.Id;
+    const id = req.params.id;
     const value = await userServices.getUserField(id, field);
     if(!value)
     {
@@ -22,7 +22,7 @@ export const getUserField = async ( req: Request, res: Response) =>
 
 export const getUserById = async (req: Request, res: Response) => {
   try {
-    const userId = req.params.Id;
+    const userId = req.params.id;
     const user = await userServices.getUserById(userId);
 
     if (!user) {
@@ -41,7 +41,7 @@ export const getUserByFamilyId = async ( req: Request, res: Response) =>
 {
   try
   {
-    const user = await userServices.getUserByFamilyId(req.params.Id);
+    const user = await userServices.getUserByFamilyId(req.params.id);
     if(!user) {
       res.status(404).json({ error: "User not found" });
       return;
@@ -76,12 +76,12 @@ export const updateUser = async (req: Request, res: Response)  =>
 {
   try{
     const data = req.body as Partial<User>;
-    if(!userServices.getUserById(req.params.Id))
+    if(!userServices.getUserById(req.params.id))
     {
       res.status(404).json({error :'User is undefined'});
       return;
     }
-    await userServices.updateUser(req.params.Id, data);
+    await userServices.updateUser(req.params.id, data);
     res.json({ message: "User updated successfully" });
   }
    catch (error) {
@@ -93,12 +93,12 @@ export const updateUser = async (req: Request, res: Response)  =>
 export const deleteUser = async (req: Request, res: Response) =>
 {
   try{
-    const userId = await userServices.getUserByFamilyId(req.params.Id);
+    const userId = await userServices.getUserByFamilyId(req.params.id);
     if(!userId) {
       res.status(404).json({ error: "User not found" });
       return;
     } 
-    await userServices.deleteUser(req.params.Id);
+    await userServices.deleteUser(req.params.id);
   }
    catch (error) {
     console.error("Error deleting user:", error);

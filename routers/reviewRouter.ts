@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import { 
   getReviewField,
@@ -11,7 +11,6 @@ import {
 import { 
   authenticateToken,
   authorizeRoles,
-  AuthenticatedRequest 
 } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 import { checkReviewAccess, checkReviewUserAccess } from '../middleware/reviewauth';
@@ -68,7 +67,7 @@ const updateReviewValidationRules = [
 
 // Quy tắc validation cho các tham số
 const idValidationRule = [
-  param('Id')
+  param('id')
     .notEmpty()
     .withMessage('ID không được để trống')
     .isString()
@@ -91,10 +90,10 @@ const fieldValidationRule = [
 
 // Middleware kiểm tra quyền truy cập review
 function checkReviewPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const currentUser = req.user;
   
   if (!currentUser) {
@@ -115,7 +114,7 @@ function checkReviewPermission(
     // Có thể cần check:
     // 1. Review có thuộc về dịch vụ/sản phẩm mà user có quyền xem không
     // 2. Review có phải là public không
-    // const review = await getReviewById(req.params.Id);
+    // const review = await getReviewById(req.params.id);
     // if (review.userId !== currentUser.id && !isPublicReview) {
     //   return res.status(403).json({
     //     success: false,
@@ -134,10 +133,10 @@ function checkReviewPermission(
 
 // Middleware kiểm tra quyền truy cập review theo user
 /*function checkUserReviewAccessPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const targetUserId = req.params.userId;
   const currentUser = req.user;
   
@@ -178,10 +177,10 @@ function checkReviewPermission(
 
 // Middleware kiểm tra quyền sở hữu review
 function checkReviewOwnership(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const currentUser = req.user;
   
   if (!currentUser) {
@@ -199,7 +198,7 @@ function checkReviewOwnership(
   // User chỉ có thể cập nhật/xóa review của chính mình
   if (['family_admin', 'member'].includes(currentUser.role)) {
     // TODO: Thêm logic check user có phải là tác giả của review này không
-    // const review = await getReviewById(req.params.Id);
+    // const review = await getReviewById(req.params.id);
     // if (review.userId !== currentUser.id) {
     //   // Family admin có thể xóa review không phù hợp trong family
     //   if (currentUser.role === 'family_admin') {
@@ -223,10 +222,10 @@ function checkReviewOwnership(
 
 // Middleware validate việc tạo review
 function validateReviewCreation(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const currentUser = req.user;
   const reviewData = req.body;
   
@@ -267,10 +266,10 @@ function validateReviewCreation(
 
 // Middleware validate rating value
 function validateRating(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const { rating } = req.body;
   
   if (rating !== undefined) {
@@ -304,34 +303,8 @@ const wrapHandler = (handler: any): express.RequestHandler => {
 
 // ==================== ROUTES ====================
 
-// GET /api/reviews/:Id/field/:field - Lấy một field cụ thể của review
-// Chỉ admin hoặc user có quyền truy cập review mới được xem
-router.get('/:Id/field/:field',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
-  wrapHandler(checkReviewPermission),
-  wrapHandler(getReviewField)
-);
-
-// GET /api/reviews/:Id - Lấy review theo ID
-// Chỉ admin hoặc user có quyền truy cập review mới được xem
-router.get('/:Id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(checkReviewPermission),
-  wrapHandler(getReviewById)
-);
-
-// GET /api/reviews/user/:userId - Lấy tất cả review của user
-// Chỉ admin hoặc chính user hoặc family member mới được xem
-/*router.get('/user/:userId',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(userIdValidationRule)),
-  wrapHandler(checkUserReviewAccessPermission),
-  wrapHandler(getReviewsByUserId)
-);*/
-
 // POST /api/reviews - Tạo review mới
+// POST routes thường không conflict, nhưng tốt nhất đặt trước GET
 // Admin, family_admin và member đều có thể tạo review
 router.post('/',
   wrapHandler(authenticateToken),
@@ -342,9 +315,40 @@ router.post('/',
   wrapHandler(addReview)
 );
 
-// PUT /api/reviews/:Id - Cập nhật review
+// GET /api/reviews/user/:userId - Lấy tất cả review của user
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc chính user hoặc family member mới được xem
+/*router.get('/user/:userId',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(userIdValidationRule)),
+  wrapHandler(checkUserReviewAccessPermission),
+  wrapHandler(getReviewsByUserId)
+);*/
+
+// GET /api/reviews/:id/field/:field - Lấy một field cụ thể của review
+// ✅ ROUTE CỤ THỂ - có nhiều segments, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc user có quyền truy cập review mới được xem
+router.get('/:id/field/:field',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
+  wrapHandler(checkReviewPermission),
+  wrapHandler(getReviewField)
+);
+
+// GET /api/reviews/:id - Lấy review theo ID
+// ✅ ROUTE TỔNG QUÁT - phải đặt SAU tất cả routes cụ thể
+// Chỉ admin hoặc user có quyền truy cập review mới được xem
+router.get('/:id',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(idValidationRule)),
+  wrapHandler(checkReviewPermission),
+  wrapHandler(getReviewById)
+);
+
+// PUT /api/reviews/:id - Cập nhật review
+// PUT/DELETE có thể đặt sau GET vì ít conflict hơn
 // Chỉ admin hoặc tác giả của review mới được cập nhật
-router.put('/:Id',
+router.put('/:id',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest([...idValidationRule, ...updateReviewValidationRules])),
   wrapHandler(validateRating),
@@ -352,9 +356,9 @@ router.put('/:Id',
   wrapHandler(updateReview)
 );
 
-// DELETE /api/reviews/:Id - Xóa review
+// DELETE /api/reviews/:id - Xóa review
 // Chỉ admin hoặc tác giả của review hoặc family_admin mới được xóa
-router.delete('/:Id',
+router.delete('/:id',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest(idValidationRule)),
   wrapHandler(checkReviewOwnership),

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import { 
   getMessageField,
@@ -13,14 +13,13 @@ import {
 import { 
   authenticateToken,
   authorizeRoles,
-  AuthenticatedRequest 
 } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 import { checkMessageAccess, checkMemberMessageAccess } from '../middleware/messageauth';
 
 const router = express.Router();
 
-// Quy tắc validation
+// Quy tắc validation - Cập nhật theo interface Message
 const messageValidationRules = [
   body('text')
     .notEmpty()
@@ -45,16 +44,11 @@ const messageValidationRules = [
     .withMessage('Tên người gửi phải là string')
     .isLength({ min: 1, max: 100 })
     .withMessage('Tên người gửi phải từ 1-100 ký tự'),
-  body('familyId')
+  body('recipient')
     .notEmpty()
-    .withMessage('Family ID không được để trống')
-    .isArray()
-    .withMessage('Family ID phải là array')
-    .custom((familyIds) => {
-      if (!Array.isArray(familyIds)) return false;
-      return familyIds.every(id => typeof id === 'string');
-    })
-    .withMessage('Tất cả Family ID phải là string'),
+    .withMessage('Recipient không được để trống')
+    .isString()
+    .withMessage('Recipient phải là string'),
   body('chatroomId')
     .notEmpty()
     .withMessage('Chatroom ID không được để trống')
@@ -79,23 +73,19 @@ const updateMessageValidationRules = [
     .withMessage('Tên người gửi phải là string')
     .isLength({ min: 1, max: 100 })
     .withMessage('Tên người gửi phải từ 1-100 ký tự'),
-  body('familyId')
+  body('recipient')
     .optional()
-    .isArray()
-    .withMessage('Family ID phải là array')
-    .custom((familyIds) => {
-      if (!Array.isArray(familyIds)) return false;
-      return familyIds.every(id => typeof id === 'string');
-    })
-    .withMessage('Tất cả Family ID phải là string'),
+    .isString()
+    .withMessage('Recipient phải là string'),
   body('chatroomId')
     .optional()
     .isString()
     .withMessage('Chatroom ID phải là string')
 ];
 
+// Thay đổi từ 'Id' thành 'id'
 const idValidationRule = [
-  param('Id')
+  param('id')
     .notEmpty()
     .withMessage('ID không được để trống')
     .isString()
@@ -126,18 +116,20 @@ const chatRoomIdValidationRule = [
     .withMessage('Chatroom ID phải là string')
 ];
 
+// Cập nhật field validation để phù hợp với interface Message
 const fieldValidationRule = [
   param('field')
-    .isIn(['text', 'imageUrl', 'senderId', 'senderName', 'familyId', 'chatroomId', 'createdAt', 'updatedAt'])
+    .isIn(['id', 'text', 'imageUrl', 'senderId', 'senderName', 'recipient', 'chatroomId', 'createdAt', 'updatedAt'])
     .withMessage('Field không hợp lệ')
 ];
 
 function checkMessagePermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
-  const targetMessageId = req.params.Id;
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
+  // Thay đổi từ req.params.Id thành req.params.id
+  const targetMessageId = req.params.id;
   const currentUser = req.user;
   
   if (!currentUser) {
@@ -160,7 +152,7 @@ function checkMessagePermission(
     // 2. Message có thuộc về family của user không
     // const message = await getMessageById(targetMessageId);
     // const chatRoom = await getChatRoomById(message.chatroomId);
-    // if (!chatRoom.members.includes(currentUser.id) && !message.familyId.includes(currentUser.familyId)) {
+    // if (!chatRoom.members.includes(currentUser.id)) {
     //   return res.status(403).json({
     //     success: false,
     //     message: 'Bạn không có quyền truy cập tin nhắn này'
@@ -177,10 +169,10 @@ function checkMessagePermission(
 }
 
 /*function checkSenderAccessPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const targetSenderId = req.params.senderId;
   const currentUser = req.user;
   
@@ -221,10 +213,10 @@ function checkMessagePermission(
 }*/
 
 function checkChatRoomAccessPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const targetChatRoomId = req.params.chatRoomId;
   const currentUser = req.user;
   
@@ -261,10 +253,10 @@ function checkChatRoomAccessPermission(
 }
 
 function checkMessageOwnership(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const currentUser = req.user;
   
   if (!currentUser) {
@@ -282,7 +274,7 @@ function checkMessageOwnership(
   // User chỉ có thể cập nhật/xóa tin nhắn của chính mình
   if (['family_admin', 'member'].includes(currentUser.role)) {
     // TODO: Thêm logic check user có phải là sender của message này không
-    // const message = await getMessageById(req.params.Id);
+    // const message = await getMessageById(req.params.id);
     // if (message.senderId !== currentUser.id) {
     //   // Family admin có thể xóa tin nhắn trong family
     //   if (currentUser.role === 'family_admin' && message.familyId.includes(currentUser.familyId)) {
@@ -304,10 +296,10 @@ function checkMessageOwnership(
 }
 
 function validateMessageCreation(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const currentUser = req.user;
   const messageData = req.body;
   
@@ -347,52 +339,8 @@ const wrapHandler = (handler: any): express.RequestHandler => {
   };
 };
 
-// GET /api/messages/:Id/field/:field - Lấy một field cụ thể của message
-// Chỉ admin hoặc user có quyền truy cập message mới được xem
-router.get('/:Id/field/:field',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
-  wrapHandler(checkMessagePermission),
-  wrapHandler(getMessageField)
-);
-
-// GET /api/messages/:Id - Lấy message theo ID
-// Chỉ admin hoặc user có quyền truy cập message mới được xem
-router.get('/:Id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(checkMessagePermission),
-  wrapHandler(getMessageById)
-);
-
-// GET /api/messages/sender/:senderId - Lấy tất cả message của sender
-// Chỉ admin hoặc chính sender hoặc family member mới được xem
-/*router.get('/sender/:senderId',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(senderIdValidationRule)),
-  wrapHandler(checkSenderAccessPermission),
-  wrapHandler(getMessagesBySenderId)
-);*/
-
-// GET /api/messages/sender-name/:senderName - Lấy tất cả message theo tên sender
-// Chỉ admin hoặc family member mới được xem
-router.get('/sender-name/:senderName',
-  wrapHandler(authenticateToken),
-  wrapHandler(authorizeRoles('admin', 'family_admin')),
-  wrapHandler(validateRequest(senderNameValidationRule)),
-  wrapHandler(getMessagesBySenderName)
-);
-
-// GET /api/messages/chatroom/:chatRoomId - Lấy tất cả message trong chatroom
-// Chỉ admin hoặc member của chatroom mới được xem
-router.get('/chatroom/:chatRoomId',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(chatRoomIdValidationRule)),
-  wrapHandler(checkChatRoomAccessPermission),
-  wrapHandler(getMessagesByChatRoom)
-);
-
 // POST /api/messages - Tạo message mới
+// POST routes thường không conflict, nhưng tốt nhất đặt trước GET
 // Admin, family_admin và member đều có thể tạo message
 router.post('/',
   wrapHandler(authenticateToken),
@@ -402,18 +350,69 @@ router.post('/',
   wrapHandler(addMessage)
 );
 
-// PUT /api/messages/:Id - Cập nhật message
+// GET /api/messages/sender-name/:senderName - Lấy tất cả message theo tên sender
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc family member mới được xem
+router.get('/sender-name/:senderName',
+  wrapHandler(authenticateToken),
+  wrapHandler(authorizeRoles('admin', 'family_admin')),
+  wrapHandler(validateRequest(senderNameValidationRule)),
+  wrapHandler(getMessagesBySenderName)
+);
+
+// GET /api/messages/chatroom/:chatRoomId - Lấy tất cả message trong chatroom
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc member của chatroom mới được xem
+router.get('/chatroom/:chatRoomId',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(chatRoomIdValidationRule)),
+  wrapHandler(checkChatRoomAccessPermission),
+  wrapHandler(getMessagesByChatRoom)
+);
+
+// GET /api/messages/sender/:senderId - Lấy tất cả message của sender
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc chính sender hoặc family member mới được xem
+/*router.get('/sender/:senderId',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(senderIdValidationRule)),
+  wrapHandler(checkSenderAccessPermission),
+  wrapHandler(getMessagesBySenderId)
+);*/
+
+// GET /api/messages/:id/field/:field - Lấy một field cụ thể của message
+// ✅ ROUTE CỤ THỂ - có nhiều segments, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc user có quyền truy cập message mới được xem
+router.get('/:id/field/:field',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
+  wrapHandler(checkMessagePermission),
+  wrapHandler(getMessageField)
+);
+
+// GET /api/messages/:id - Lấy message theo ID
+// ✅ ROUTE TỔNG QUÁT - phải đặt SAU tất cả routes cụ thể
+// Chỉ admin hoặc user có quyền truy cập message mới được xem
+router.get('/:id',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(idValidationRule)),
+  wrapHandler(checkMessagePermission),
+  wrapHandler(getMessageById)
+);
+
+// PUT /api/messages/:id - Cập nhật message
+// PUT/DELETE có thể đặt sau GET vì ít conflict hơn
 // Chỉ admin hoặc sender của message mới được cập nhật
-router.put('/:Id',
+router.put('/:id',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest([...idValidationRule, ...updateMessageValidationRules])),
   wrapHandler(checkMessageOwnership),
   wrapHandler(updateMessage)
 );
 
-// DELETE /api/messages/:Id - Xóa message
+// DELETE /api/messages/:id - Xóa message
 // Chỉ admin hoặc sender của message hoặc family_admin mới được xóa
-router.delete('/:Id',
+router.delete('/:id',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest(idValidationRule)),
   wrapHandler(checkMessageOwnership),

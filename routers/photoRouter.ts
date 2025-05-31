@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
 import { 
   getPhotoField,
@@ -16,7 +16,6 @@ import {
 import { 
   authenticateToken,
   authorizeRoles,
-  AuthenticatedRequest 
 } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 import { checkPhotoAccess, checkAlbumPhotoAccess } from '../middleware/photoauth';
@@ -111,7 +110,7 @@ const removeCommentValidationRules = [
 ];
 
 const idValidationRule = [
-  param('Id')
+  param('id')
     .notEmpty()
     .withMessage('ID không được để trống')
     .isString()
@@ -141,11 +140,11 @@ const fieldValidationRule = [
 ];
 
 function checkPhotoPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
-  const targetPhotoId = req.params.Id;
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
+  const targetPhotoId = req.params.id;
   const currentUser = req.user;
   
   if (!currentUser) {
@@ -175,10 +174,10 @@ function checkPhotoPermission(
 }
 
 function checkAlbumAccessPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const targetAlbumId = req.params.albumId;
   const currentUser = req.user;
   
@@ -214,10 +213,10 @@ function checkAlbumAccessPermission(
 }
 
 /*function checkCreatorAccessPermission(
-  req: AuthenticatedRequest, 
-  res: express.Response, 
-  next: express.NextFunction
-): void | express.Response {
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void | Response {
   const targetCreatorId = req.params.creatorId;
   const currentUser = req.user;
   
@@ -260,43 +259,12 @@ const wrapHandler = (handler: any): express.RequestHandler => {
   };
 };
 
-// GET /api/photos/:Id/field/:field - Lấy một field cụ thể của photo
-// Chỉ admin hoặc member của family có photo mới được xem
-router.get('/:Id/field/:field',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
-  wrapHandler(checkPhotoPermission),
-  wrapHandler(getPhotoField)
-);
-
-// GET /api/photos/:Id - Lấy photo theo ID
-// Chỉ admin hoặc member của family có photo mới được xem
-router.get('/:Id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(checkPhotoPermission),
-  wrapHandler(getPhotoById)
-);
-
-// GET /api/photos/album/:albumId - Lấy tất cả photo trong album
-// Chỉ admin hoặc member của family có album mới được xem
-router.get('/album/:albumId',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(albumIdValidationRule)),
-  wrapHandler(checkAlbumAccessPermission),
-  wrapHandler(getPhotosByAlbumId)
-);
-
-// GET /api/photos/creator/:creatorId - Lấy tất cả photo của creator
-// Chỉ admin hoặc chính creator hoặc family member mới được xem
-/*router.get('/creator/:creatorId',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(creatorIdValidationRule)),
-  wrapHandler(checkCreatorAccessPermission),
-  wrapHandler(getPhotosByCreatorId)
-);*/
+// ============================================
+// THỨ TỰ ĐÚNG: Routes CỤ THỂ trước, TỔNG QUÁT sau
+// ============================================
 
 // POST /api/photos - Tạo photo mới
+// POST routes thường không conflict, nhưng tốt nhất đặt trước GET
 // Admin, family_admin và member đều có thể tạo photo
 router.post('/',
   wrapHandler(authenticateToken),
@@ -305,25 +273,8 @@ router.post('/',
   wrapHandler(addPhoto)
 );
 
-// PUT /api/photos/:Id - Cập nhật photo
-// Chỉ admin hoặc owner của photo mới được cập nhật
-router.put('/:Id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...updatePhotoValidationRules])),
-  wrapHandler(checkPhotoPermission),
-  wrapHandler(updatePhoto)
-);
-
-// DELETE /api/photos/:Id - Xóa photo
-// Chỉ admin hoặc owner của photo mới được xóa
-router.delete('/:Id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(checkPhotoPermission),
-  wrapHandler(deletePhoto)
-);
-
 // POST /api/photos/like - Like photo
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
 // Admin, family_admin và member đều có thể like photo
 router.post('/like',
   wrapHandler(authenticateToken),
@@ -333,6 +284,7 @@ router.post('/like',
 );
 
 // POST /api/photos/unlike - Unlike photo
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
 // Admin, family_admin và member đều có thể unlike photo
 router.post('/unlike',
   wrapHandler(authenticateToken),
@@ -341,9 +293,40 @@ router.post('/unlike',
   wrapHandler(unlikePhoto)
 );
 
-// POST /api/photos/:Id/comments - Thêm comment vào photo
+// GET /api/photos/album/:albumId - Lấy tất cả photo trong album
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc member của family có album mới được xem
+router.get('/album/:albumId',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(albumIdValidationRule)),
+  wrapHandler(checkAlbumAccessPermission),
+  wrapHandler(getPhotosByAlbumId)
+);
+
+// GET /api/photos/creator/:creatorId - Lấy tất cả photo của creator
+// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc chính creator hoặc family member mới được xem
+/*router.get('/creator/:creatorId',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(creatorIdValidationRule)),
+  wrapHandler(checkCreatorAccessPermission),
+  wrapHandler(getPhotosByCreatorId)
+);*/
+
+// GET /api/photos/:id/field/:field - Lấy một field cụ thể của photo
+// ✅ ROUTE CỤ THỂ - có nhiều segments, phải đặt TRƯỚC /:id
+// Chỉ admin hoặc member của family có photo mới được xem
+router.get('/:id/field/:field',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
+  wrapHandler(checkPhotoPermission),
+  wrapHandler(getPhotoField)
+);
+
+// POST /api/photos/:id/comments - Thêm comment vào photo
+// ✅ ROUTE CỤ THỂ - có path prefix sau parameter, phải đặt TRƯỚC các routes /:id khác
 // Admin, family_admin và member đều có thể comment
-router.post('/:Id/comments',
+router.post('/:id/comments',
   wrapHandler(authenticateToken),
   wrapHandler(authorizeRoles('admin', 'family_admin', 'member')),
   wrapHandler(validateRequest([...idValidationRule, ...commentValidationRules])),
@@ -351,13 +334,42 @@ router.post('/:Id/comments',
   wrapHandler(addCommentToPhoto)
 );
 
-// DELETE /api/photos/:Id/comments - Xóa comment khỏi photo
+// DELETE /api/photos/:id/comments - Xóa comment khỏi photo
+// ✅ ROUTE CỤ THỂ - có path prefix sau parameter, phải đặt TRƯỚC các routes /:id khác
 // Chỉ admin hoặc owner của comment mới được xóa
-router.delete('/:Id/comments',
+router.delete('/:id/comments',
   wrapHandler(authenticateToken),
   wrapHandler(validateRequest([...idValidationRule, ...removeCommentValidationRules])),
   wrapHandler(checkPhotoPermission),
   wrapHandler(removeCommentFromPhoto)
 );
 
+// GET /api/photos/:id - Lấy photo theo ID
+// ✅ ROUTE TỔNG QUÁT - phải đặt SAU tất cả routes cụ thể
+// Chỉ admin hoặc member của family có photo mới được xem
+router.get('/:id',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(idValidationRule)),
+  wrapHandler(checkPhotoPermission),
+  wrapHandler(getPhotoById)
+);
+
+// PUT /api/photos/:id - Cập nhật photo
+// PUT/DELETE có thể đặt sau GET vì ít conflict hơn
+// Chỉ admin hoặc owner của photo mới được cập nhật
+router.put('/:id',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest([...idValidationRule, ...updatePhotoValidationRules])),
+  wrapHandler(checkPhotoPermission),
+  wrapHandler(updatePhoto)
+);
+
+// DELETE /api/photos/:id - Xóa photo
+// Chỉ admin hoặc owner của photo mới được xóa
+router.delete('/:id',
+  wrapHandler(authenticateToken),
+  wrapHandler(validateRequest(idValidationRule)),
+  wrapHandler(checkPhotoPermission),
+  wrapHandler(deletePhoto)
+);
 export default router;

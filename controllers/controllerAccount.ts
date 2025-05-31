@@ -4,7 +4,7 @@ import * as accountServices from '../QuanLyTaiChinh-backend/accountServices';
 
 export const getAccountField = async (req: Request, res: Response) => {
     try {
-        const accountId = req.params.Id;
+        const accountId = req.params.id;
         const field = req.params.field as keyof Account;
         
         const value = await accountServices.getAccountField(accountId, field);
@@ -31,7 +31,7 @@ export const getAccountField = async (req: Request, res: Response) => {
 
 export const getAccountById = async (req: Request, res: Response) => {
     try {
-        const accountId = req.params.Id;
+        const accountId = req.params.id;
         const account = await accountServices.getAccountById(accountId);
         
         if (!account) {
@@ -162,7 +162,7 @@ export const addAccount = async (req: Request, res: Response) => {
 
 export const updateAccount = async (req: Request, res: Response) => {
     try {
-        const accountId = req.params.Id;
+        const accountId = req.params.id;
         const updateData = req.body;
 
         // Kiểm tra tài khoản có tồn tại không
@@ -205,7 +205,7 @@ export const updateAccount = async (req: Request, res: Response) => {
 
 export const updateAccountBalance = async (req: Request, res: Response) => {
     try {
-        const accountId = req.params.Id;
+        const accountId = req.params.id;
         const { amount, operation } = req.body; // operation: 'add', 'subtract', 'set'
 
         if (amount === undefined || amount === null) {
@@ -280,7 +280,7 @@ export const updateAccountBalance = async (req: Request, res: Response) => {
 
 export const deleteAccount = async (req: Request, res: Response) => {
     try {
-        const accountId = req.params.Id;
+        const accountId = req.params.id;
 
         // Kiểm tra tài khoản có tồn tại không
         const existingAccount = await accountServices.getAccountById(accountId);
@@ -316,7 +316,7 @@ export const deleteAccount = async (req: Request, res: Response) => {
 
 export const deactivateAccount = async (req: Request, res: Response) => {
     try {
-        const accountId = req.params.Id;
+        const accountId = req.params.id;
 
         // Kiểm tra tài khoản có tồn tại không
         const existingAccount = await accountServices.getAccountById(accountId);
@@ -354,7 +354,7 @@ export const deactivateAccount = async (req: Request, res: Response) => {
 
 export const activateAccount = async (req: Request, res: Response) => {
     try {
-        const accountId = req.params.Id;
+        const accountId = req.params.id;
 
         // Kiểm tra tài khoản có tồn tại không
         const existingAccount = await accountServices.getAccountById(accountId);

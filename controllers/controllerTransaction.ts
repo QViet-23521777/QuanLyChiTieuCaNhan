@@ -4,7 +4,7 @@ import * as transactionServices from '../QuanLyTaiChinh-backend/transactionServi
 
 export const getTransactionField = async (req: Request, res: Response) => {
     try {
-        const transactionId = req.params.Id;
+        const transactionId = req.params.id;
         const field = req.body.field as keyof Transaction;
 
         const value = await transactionServices.getTransactionField(transactionId, field);
@@ -22,7 +22,7 @@ export const getTransactionField = async (req: Request, res: Response) => {
 
 export const getTransactionById = async (req: Request, res: Response) => {
     try {
-        const transactionId = req.params.Id;
+        const transactionId = req.params.id;
         const transaction = await transactionServices.getTransactionById(transactionId);
 
         if (!transaction) {
@@ -112,7 +112,7 @@ export const getTransactionsByType = async (req: Request, res: Response) => {
 
 export const updateTransaction = async (req: Request, res: Response) => {
     try {
-        const transactionId = req.params.Id;
+        const transactionId = req.params.id;
         const updateData = req.body as Partial<Transaction>;
 
         if (!updateData || Object.keys(updateData).length === 0) {
@@ -136,7 +136,7 @@ export const updateTransaction = async (req: Request, res: Response) => {
 
 export const deleteTransaction = async (req: Request, res: Response) => {
     try {
-        const transactionId = req.params.Id;
+        const transactionId = req.params.id;
 
         const existingTransaction = await transactionServices.getTransactionById(transactionId);
         if (!existingTransaction) {
@@ -154,7 +154,7 @@ export const deleteTransaction = async (req: Request, res: Response) => {
 
 export const undoTransaction = async (req: Request, res: Response) => {
     try {
-        const transactionId = req.params.Id;
+        const transactionId = req.params.id;
 
         const existingTransaction = await transactionServices.getTransactionById(transactionId);
         if (!existingTransaction) {

@@ -110,27 +110,29 @@ export const sanitizeInput = (req: Request, res: Response, next: NextFunction) =
     next();
 };//loại bỏ tác nhân gây hại
 
-export const validateContentType = (req: Request, res: Response, next: NextFunction) => {
+export const validateContentType = (req: Request, res: Response, next: NextFunction): void => {
   if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
     if (!req.is('application/json')) {
-      return res.status(400).json({
+       res.status(400).json({
         success: false,
         message: 'Content-Type phải là application/json'
       });
+      return;
     }
   }
   next();
 };
 
-export const requestSizeLimit = (req: Request, res: Response, next: NextFunction) => {
+export const requestSizeLimit = (req: Request, res: Response, next: NextFunction): void => {
   const contentLength = req.get('content-length');
   const maxSize = 10 * 1024 * 1024; // 10MB
 
   if (contentLength && parseInt(contentLength) > maxSize) {
-    return res.status(413).json({
+    res.status(413).json({
       success: false,
       message: 'Request quá lớn. Giới hạn 10MB'
     });
+    return;
   }
   next();
 };

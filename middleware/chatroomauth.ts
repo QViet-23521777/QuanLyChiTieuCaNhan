@@ -1,13 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { getChatRoomById } from '../QuanLyTaiChinh-backend/chatroomServices';
 import { ChatRoom } from '../models/types';
-import { AuthenticatedRequest } from '../middleware/auth';
 
-export const checkChatroomAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction) =>
+export const checkChatroomAccess = async (req: Request, res: Response, next: NextFunction) =>
 {
     try {
                 const currentUser = req.user;
-                const chatroom = await getChatRoomById(req.params.Id);
+                const chatroom = await getChatRoomById(req.params.id);
     
                 if (!currentUser) {
                     return res.status(401).json({ message: 'Chưa đăng nhập' });
@@ -32,11 +31,11 @@ export const checkChatroomAccess = async (req: AuthenticatedRequest, res: Respon
             }
 }
 
-export const checkAdminAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction) =>
+export const checkAdminAccess = async (req: Request, res: Response, next: NextFunction) =>
 {
     try {
                 const currentUser = req.user;
-                const chatroom = await getChatRoomById(req.params.Id);
+                const chatroom = await getChatRoomById(req.params.id);
     
                 if (!currentUser) {
                     return res.status(401).json({ message: 'Chưa đăng nhập' });

@@ -4,7 +4,7 @@ import * as commentServices from '../QuanLyTaiChinh-backend/commentServices';
 
 export const getCommentField = async (req: Request, res: Response) => {
     try {
-        const commentId = req.params.Id;
+        const commentId = req.params.id;
         const field = req.body.field as keyof Comment;
 
         const value = await commentServices.getCommentField(commentId, field);
@@ -39,7 +39,7 @@ export const addComment = async (req: Request, res: Response) => {
 
 export const getCommentById = async (req: Request, res: Response) => {
     try {
-        const commentId = req.params.Id;
+        const commentId = req.params.id;
         const comment = await commentServices.getCommentById(commentId);
 
         if (!comment) {
@@ -80,7 +80,7 @@ export const getCommentsByUserName = async (req: Request, res: Response) => {
 
 export const updateComment = async (req: Request, res: Response) => {
     try {
-        const commentId = req.params.Id;
+        const commentId = req.params.id;
         const updateData = req.body as Partial<Comment>;
 
         await commentServices.updateComment(commentId, updateData);
@@ -93,7 +93,7 @@ export const updateComment = async (req: Request, res: Response) => {
 
 export const deleteComment = async (req: Request, res: Response) => {
     try {
-        const commentId = req.params.Id;
+        const commentId = req.params.id;
 
         await commentServices.deleteComment(commentId);
         res.json({ message: "Comment deleted", commentId });

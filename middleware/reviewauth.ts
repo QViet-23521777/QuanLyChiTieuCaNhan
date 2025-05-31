@@ -1,14 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { getReviewById } from '../QuanLyTaiChinh-backend/reviewServices';
 import { Review, User } from '../models/types';
-import { AuthenticatedRequest } from '../middleware/auth';
 import { getUserById } from '../QuanLyTaiChinh-backend/userServices';
 
-export const checkReviewAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction) =>
+export const checkReviewAccess = async (req: Request, res: Response, next: NextFunction) =>
 {
     try {
                 const currentUser = req.user;
-                const re = await getReviewById(req.params.Id);
+                const re = await getReviewById(req.params.id);
     
                 if (!currentUser) {
                     return res.status(401).json({ message: 'Chưa đăng nhập' });
@@ -33,11 +32,11 @@ export const checkReviewAccess = async (req: AuthenticatedRequest, res: Response
             }
 }
 
-export const checkReviewUserAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction) =>
+export const checkReviewUserAccess = async (req: Request, res: Response, next: NextFunction) =>
 {
     try {
                 const currentUser = req.user;
-                const re = await getReviewById(req.params.Id);
+                const re = await getReviewById(req.params.id);
     
                 if (!currentUser) {
                     return res.status(401).json({ message: 'Chưa đăng nhập' });

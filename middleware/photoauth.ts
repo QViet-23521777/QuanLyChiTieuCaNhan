@@ -1,15 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import { getPhotoById } from '../QuanLyTaiChinh-backend/photoServices';
 import { Photo, Album, User } from '../models/types';
-import { AuthenticatedRequest } from '../middleware/auth';
 import { getUserById, getUserField} from '../QuanLyTaiChinh-backend/userServices';
 import { getAlbumByFamilyId, getAlbumField, getAlbumByPhotoId } from '../QuanLyTaiChinh-backend/albumServices';
 
-export const checkPhotoAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction) =>
+export const checkPhotoAccess = async (req: Request, res: Response, next: NextFunction) =>
 {
     try {
             const currentUser = req.user;
-            const photo = await getPhotoById(req.params.Id);
+            const photo = await getPhotoById(req.params.id);
 
             if (!currentUser) {
                 return res.status(401).json({ message: 'Chưa đăng nhập' });
@@ -30,12 +29,12 @@ export const checkPhotoAccess = async (req: AuthenticatedRequest, res: Response,
         }
 }
 
-export const checkAlbumPhotoAccess= async (req: AuthenticatedRequest, res: Response, next: NextFunction) =>
+export const checkAlbumPhotoAccess= async (req: Request, res: Response, next: NextFunction) =>
 {
     try{
         const currentUser = req.user;
-        const photo = await getPhotoById(req.params.Id);
-        const album = await getAlbumByPhotoId(req.params.Id);
+        const photo = await getPhotoById(req.params.id);
+        const album = await getAlbumByPhotoId(req.params.id);
         const pId = photo?.createdBy as string;
         const famId = await getUserField(pId, 'familyId');
         if (!currentUser) {

@@ -4,7 +4,7 @@ import * as socialPostServices from '../QuanLyTaiChinh-backend/socialPost';
 
 export const getSocialField = async (req: Request, res: Response) => {
     try {
-        const postId = req.params.Id;
+        const postId = req.params.id;
         const field = req.body.field as keyof SocialPost;
 
         const value = await socialPostServices.getSocialField(postId, field);
@@ -34,7 +34,7 @@ export const addSocialPost = async (req: Request, res: Response) => {
 
 export const getPostById = async (req: Request, res: Response) => {
     try {
-        const postId = req.params.Id;
+        const postId = req.params.id;
         const post = await socialPostServices.getPostBySocialPostId(postId);
         if (!post) {
             res.status(404).json({ error: 'Post not found' });
@@ -83,7 +83,7 @@ export const getPostsByFamilyId = async (req: Request, res: Response) => {
 
 export const updatePost = async (req: Request, res: Response) => {
     try {
-        const postId = req.params.Id;
+        const postId = req.params.id;
         const updateData = req.body as Partial<SocialPost>;
 
         await socialPostServices.updatePost(postId, updateData);
@@ -96,7 +96,7 @@ export const updatePost = async (req: Request, res: Response) => {
 
 export const deletePost = async (req: Request, res: Response) => {
     try {
-        const postId = req.params.Id;
+        const postId = req.params.id;
         await socialPostServices.deletePost(postId);
         res.json({ message: 'Post deleted successfully' });
     } catch (error) {

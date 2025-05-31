@@ -1,13 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { getCommentById } from '../QuanLyTaiChinh-backend/commentServices';
 import { Comment } from '../models/types';
-import { AuthenticatedRequest } from '../middleware/auth';
 
-export const checkCommentAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction) =>
+export const checkCommentAccess = async (req: Request, res: Response, next: NextFunction) =>
 {
     try {
                 const currentUser = req.user;
-                const comment = await getCommentById(req.params.Id);
+                const comment = await getCommentById(req.params.id);
     
                 if (!currentUser) {
                     return res.status(401).json({ message: 'Chưa đăng nhập' });

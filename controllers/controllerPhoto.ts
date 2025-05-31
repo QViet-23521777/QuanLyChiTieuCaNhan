@@ -4,7 +4,7 @@ import * as photoServices from '../QuanLyTaiChinh-backend/photoServices';
 
 export const getPhotoField = async (req: Request, res: Response) => {
     try {
-        const photoId = req.params.Id;
+        const photoId = req.params.id;
         const field = req.body.field as keyof Photo;
 
         const value = await photoServices.getPhotoField(photoId, field);
@@ -39,7 +39,7 @@ export const addPhoto = async (req: Request, res: Response) => {
 
 export const getPhotoById = async (req: Request, res: Response) => {
     try {
-        const photoId = req.params.Id;
+        const photoId = req.params.id;
         const photo = await photoServices.getPhotoById(photoId);
 
         if (!photo) {
@@ -80,7 +80,7 @@ export const getPhotosByCreatorId = async (req: Request, res: Response) => {
 
 export const updatePhoto = async (req: Request, res: Response) => {
     try {
-        const photoId = req.params.Id;
+        const photoId = req.params.id;
         const updateData = req.body as Partial<Photo>;
 
         await photoServices.updatePhoto(photoId, updateData);
@@ -93,7 +93,7 @@ export const updatePhoto = async (req: Request, res: Response) => {
 
 export const deletePhoto = async (req: Request, res: Response) => {
     try {
-        const photoId = req.params.Id;
+        const photoId = req.params.id;
 
         await photoServices.deletePhoto(photoId);
         res.json({ message: "Photo deleted successfully", photoId });
@@ -139,7 +139,7 @@ export const unlikePhoto = async (req: Request, res: Response) => {
 
 export const addCommentToPhoto = async (req: Request, res: Response) => {
     try {
-        const photoId = req.params.Id;
+        const photoId = req.params.id;
         const commentData = req.body as Omit<Comment, 'Id' | 'createdAt' | 'updatedAt'>;
 
         if (!commentData || !commentData.text || !commentData.userId) {
@@ -162,7 +162,7 @@ export const addCommentToPhoto = async (req: Request, res: Response) => {
 
 export const removeCommentFromPhoto = async (req: Request, res: Response) => {
     try {
-        const photoId = req.params.Id;
+        const photoId = req.params.id;
         const commentId = req.body.commentId;
 
         if (!commentId) {

@@ -1,15 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import { getAlbumById } from '../QuanLyTaiChinh-backend/albumServices';
 import { Album } from '../models/types';
-import { AuthenticatedRequest } from './auth';
 import { getUserById, getUserField} from '../QuanLyTaiChinh-backend/userServices';
 
-export const checkTransactionAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction) =>
+export const checkTransactionAccess = async (req: Request, res: Response, next: NextFunction) =>
 {
     try {
             const currentUser = req.user;
             const targetFamilyId = req.params.familyId;
-            const album = await getAlbumById(req.params.Id);
+            const album = await getAlbumById(req.params.id);
 
             if (!currentUser) {
                 return res.status(401).json({ message: 'Chưa đăng nhập' });
