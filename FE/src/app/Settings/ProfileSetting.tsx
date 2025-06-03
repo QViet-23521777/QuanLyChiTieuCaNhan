@@ -45,7 +45,7 @@ export default function ProfileSettingScreen() {
       <View style={styles.avatarContainer}>
         <View style={styles.avatarWrapper}>
           <Image
-            source={require('../../../assets/logo app.png')}
+            source={require('../../../assets/images/logo app.png')}
             style={styles.avatar}
             resizeMode="cover"
           />

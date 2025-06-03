@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, Modal } from 'react-na
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import styleIndex from '../index';
+import styles from '../../styles/style';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -24,50 +26,50 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.topBackground}>
-        <Text style={styles.header}>Thông Tin</Text>
-        <TouchableOpacity style={styles.bellBtn}>
+    <View style={styleProfile.container}>
+      <View style={styleProfile.topBackground}>
+        <Text style={styleProfile.header}>Thông Tin</Text>
+        <TouchableOpacity style={styleProfile.bellBtn}>
           <Ionicons name="notifications-outline" size={28} color="#fff" />
         </TouchableOpacity>
       </View>
-      <View style={styles.avatarContainer}>
-        <View style={styles.avatarWrapper}>
+      <View style={styleProfile.avatarContainer}>
+        <View style={styleProfile.avatarWrapper}>
           <Image
-            source={require('../../../assets/logo app.png')}
-            style={styles.avatar}
+            source={require('../../../assets/images/logo app.png')}
+            style={styleProfile.avatar}
             resizeMode="cover"
           />
         </View>
-        <Text style={styles.name}>{username}</Text>
+        <Text style={styleProfile.name}>{username}</Text>
       </View>
-      <View style={styles.menu}>
+      <View style={[styles.formContainer, {alignItems: 'flex-start'}]}>
         <TouchableOpacity
-          style={styles.menuItem}
+          style={styleProfile.menuItem}
           onPress={() => router.push('/Settings/ProfileSetting')}
         >
-          <View style={styles.menuIcon}>
+          <View style={styleProfile.menuIcon}>
             <Ionicons name="person-outline" size={24} color="#fff" />
           </View>
-          <Text style={styles.menuText}>Thông Tin Cá Nhân</Text>
+          <Text style={styleProfile.menuText}>Thông Tin Cá Nhân</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/Settings/Security')}>
-          <View style={styles.menuIcon}>
+        <TouchableOpacity style={styleProfile.menuItem} onPress={() => router.push('/Settings/Security')}>
+          <View style={styleProfile.menuIcon}>
             <MaterialIcons name="security" size={24} color="#fff" />
           </View>
-          <Text style={styles.menuText}>Bảo Mật</Text>
+          <Text style={styleProfile.menuText}>Bảo Mật</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/Settings/Settings')}>
-          <View style={styles.menuIcon}>
+        <TouchableOpacity style={styleProfile.menuItem} onPress={() => router.push('/Settings/Settings')}>
+          <View style={styleProfile.menuIcon}>
             <Ionicons name="settings-outline" size={24} color="#fff" />
           </View>
-          <Text style={styles.menuText}>Cài Đặt</Text>
+          <Text style={styleProfile.menuText}>Cài Đặt</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} onPress={() => setModalVisible(true)}>
-          <View style={styles.menuIcon}>
+        <TouchableOpacity style={styleProfile.menuItem} onPress={() => setModalVisible(true)}>
+          <View style={styleProfile.menuIcon}>
             <FontAwesome5 name="sign-out-alt" size={20} color="#fff" />
           </View>
-          <Text style={styles.menuText}>Đăng Xuất</Text>
+          <Text style={styleProfile.menuText}>Đăng Xuất</Text>
         </TouchableOpacity>
         {/* Modal xác nhận Đăng Xuất */}
         <Modal
@@ -76,18 +78,18 @@ export default function ProfileScreen() {
           animationType="fade"
           onRequestClose={() => setModalVisible(false)}
         >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalBox}>
-              <Text style={styles.modalTitle}>Đăng Xuất</Text>
-              <Text style={styles.modalQuestion}>Bạn chắc chắn muốn đăng xuất?</Text>
-              <Text style={styles.modalDesc}>
+          <View style={styleProfile.modalOverlay}>
+            <View style={styleProfile.modalBox}>
+              <Text style={styleProfile.modalTitle}>Đăng Xuất</Text>
+              <Text style={styleProfile.modalQuestion}>Bạn chắc chắn muốn đăng xuất?</Text>
+              <Text style={styleProfile.modalDesc}>
                 Bạn sẽ cần đăng nhập lại để sử dụng ứng dụng.
               </Text>
-              <TouchableOpacity style={styles.modalDeleteButton} onPress={handleLogout}>
-                <Text style={styles.modalDeleteButtonText}>Đăng Xuất</Text>
+              <TouchableOpacity style={styleProfile.modalDeleteButton} onPress={handleLogout}>
+                <Text style={styleProfile.modalDeleteButtonText}>Đăng Xuất</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalCancelButton} onPress={() => setModalVisible(false)}>
-                <Text style={styles.modalCancelButtonText}>Huỷ</Text>
+              <TouchableOpacity style={styleProfile.modalCancelButton} onPress={() => setModalVisible(false)}>
+                <Text style={styleProfile.modalCancelButtonText}>Huỷ</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -97,7 +99,7 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styleProfile = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#6EB5FF' },
   topBackground: {
     height: 100,
@@ -178,7 +180,7 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: '500',
   },
-  // Modal styles
+  // Modal styleProfile
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.18)',

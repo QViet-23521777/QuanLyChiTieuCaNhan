@@ -16,21 +16,21 @@ export default function Login() {
     return null; // or <AppLoading />
   }
   return (
-    <View style={styles.container}>
-      <View style={styles.topBackground}>
-        <Text style={styles.header}>Đăng Nhập</Text>
+    <View style={styleIndex.container}>
+      <View style={styleIndex.topBackground}>
+        <Text style={styleIndex.header}>Đăng Nhập</Text>
       </View>
-      <View style={styles.formContainer}>
-        <Text style={styles.label}>Tên đăng nhập hoặc email</Text>
+      <View style={styleIndex.formContainer}>
+        <Text style={styleIndex.label}>Tên đăng nhập hoặc email</Text>
         <TextInput
-          style={styles.input}
+          style={styleIndex.input}
           placeholder="example@example.com"
           placeholderTextColor="#A0AFC0"
         />
-        <Text style={styles.label}>Mật khẩu</Text>
-        <View style={styles.passwordRow}>
+        <Text style={styleIndex.label}>Mật khẩu</Text>
+        <View style={styleIndex.passwordRow}>
           <TextInput
-            style={[styles.input, { flex: 1 }]}
+            style={[styleIndex.input, { flex: 1 }]}
             placeholder="••••••••"
             placeholderTextColor="#A0AFC0"
             secureTextEntry={!showPassword}
@@ -39,31 +39,37 @@ export default function Login() {
             <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={24} color="#A0AFC0" style={{ marginLeft: 8 }} />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.fingerprintRow}>
+        <TouchableOpacity style={styleIndex.fingerprintRow}>
           <Ionicons name="finger-print-outline" size={32} color="#4A90E2" />
-          <Text style={styles.fingerprintText}>
-            Đăng nhập bằng <Text style={styles.fingerprintTextBlue}>vân tay</Text>
+          <Text style={styleIndex.fingerprintText}>
+            Đăng nhập bằng <Text style={styleIndex.fingerprintTextBlue}>vân tay</Text>
           </Text>
         </TouchableOpacity>
-        {/* <Link href="Categories/Categories" asChild> */}
-        <Link href="/Settings/Profile" asChild>
-          <TouchableOpacity style={styles.loginBtn}>
-            <Text style={styles.loginBtnText}>Đăng Nhập</Text>
+        <Link href="/home" asChild>
+        {/* <Link href="/home/notification" asChild> */}
+        {/* <Link href="/home/statistics" asChild> */}
+        {/* <Link href='/home/search' asChild> */}
+        {/* <Link href='/home/calendar' asChild> */}
+        {/* <Link href="/home/balance" asChild> */}
+        {/* <Link href="/Categories/Categories" asChild> */}
+        {/* <Link href="/Settings/Profile" asChild> */}
+          <TouchableOpacity style={styleIndex.loginBtn}>
+            <Text style={styleIndex.loginBtnText}>Đăng Nhập</Text>
           </TouchableOpacity>
         </Link>
         <Link href="/Forgot_Password" asChild>
-        <TouchableOpacity>
-          <Text style={styles.forgot}>Quên mật khẩu?</Text>
-        </TouchableOpacity>
-        </Link>
-        <Text style={styles.orText}>Chưa có tài khoản?</Text>
-        <Link href="/Create_Account" asChild>
-          <TouchableOpacity style={styles.registerBtn}>
-            <Text style={styles.registerBtnText}>Đăng Kí</Text>
+          <TouchableOpacity>
+            <Text style={styleIndex.forgot}>Quên mật khẩu?</Text>
           </TouchableOpacity>
         </Link>
-        <Text style={styles.orText}>Hoặc đăng nhập bằng</Text>
-        <View style={styles.socialRow}>
+        <Text style={styleIndex.orText}>Chưa có tài khoản?</Text>
+        <Link href="/Create_Account" asChild>
+          <TouchableOpacity style={styleIndex.registerBtn}>
+            <Text style={styleIndex.registerBtnText}>Đăng Kí</Text>
+          </TouchableOpacity>
+        </Link>
+        <Text style={styleIndex.orText}>Hoặc đăng nhập bằng</Text>
+        <View style={styleIndex.socialRow}>
           <FontAwesome name="facebook-official" size={32} color="#4A90E2" style={{ marginHorizontal: 12 }} />
           <FontAwesome name="google" size={32} color="#4A90E2" style={{ marginHorizontal: 12 }} />
         </View>
@@ -73,7 +79,7 @@ export default function Login() {
   );
 }
 
-const styles = StyleSheet.create({
+ export const styleIndex = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#6EB5FF', alignItems: 'center' },
   topBackground: {
     width: '100%',
@@ -88,7 +94,7 @@ const styles = StyleSheet.create({
   header: { color: '#fff', fontSize: 24, fontWeight: 'bold', marginTop: 40, fontFamily: 'Montserrat', },  
   formContainer: {
     backgroundColor: '#fff',
-    borderRadius: 40,
+    borderRadius: 60,
     width: '100%',
     height: '100%',
     padding: 30,
