@@ -45,12 +45,13 @@ export default function Login() {
             Đăng nhập bằng <Text style={styleIndex.fingerprintTextBlue}>vân tay</Text>
           </Text>
         </TouchableOpacity>
-        <Link href="/home" asChild>
+        <Link href="/(home)" asChild>
         {/* <Link href="/home/notification" asChild> */}
         {/* <Link href="/home/statistics" asChild> */}
         {/* <Link href='/home/search' asChild> */}
         {/* <Link href='/home/calendar' asChild> */}
         {/* <Link href="/home/balance" asChild> */}
+        {/* <Link href="/home/transfer" asChild> */}
         {/* <Link href="/Categories/Categories" asChild> */}
         {/* <Link href="/Settings/Profile" asChild> */}
           <TouchableOpacity style={styleIndex.loginBtn}>

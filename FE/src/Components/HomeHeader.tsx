@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { NotificationButton } from '@/src/Components/NotificationButton'; // Adjust the import path as needed
 
 const GreetingHeader = ({ username = 'Pendragon', wallet = 5000000, expense = 3750000,  }) => {
   return (
@@ -13,6 +14,7 @@ const GreetingHeader = ({ username = 'Pendragon', wallet = 5000000, expense = 37
         </View>
         <TouchableOpacity>
           <Ionicons name="notifications-outline" size={24} color="#000" />
+          {/* <NotificationButton /> */}
         </TouchableOpacity>
       </View>
 
