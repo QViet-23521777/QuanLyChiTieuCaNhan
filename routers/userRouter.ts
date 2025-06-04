@@ -16,6 +16,8 @@ import { validateRequest } from '../middleware/validation';
 
 const router = express.Router();
 
+console.log('🔧 Starting to define user routes...');
+
 // Validation rules
 const userValidationRules = [
   body('name')
@@ -82,12 +84,10 @@ function checkUserPermission(
     });
   }
   
-  // Admin có thể truy cập tất cả
   if (currentUser.role === 'admin') {
     return next();
   }
   
-  // User chỉ có thể truy cập thông tin của chính mình
   if (currentUser.id === targetUserId) {
     return next();
   }
@@ -107,64 +107,87 @@ const wrapHandler = (handler: any): express.RequestHandler => {
   };
 };
 
+console.log('📋 Validation rules and helpers defined');
 
-// POST /api/users - Tạo user mới
-// POST routes thường không conflict, nhưng tốt nhất đặt trước GET
-// Chỉ admin mới được tạo user
-router.post('/',
-  wrapHandler(authenticateToken),
-  wrapHandler(authorizeRoles('admin')),
-  wrapHandler(validateRequest(userValidationRules)),
-  wrapHandler(addUser)
-);
+// DEFINE ROUTES WITH DETAILED LOGGING
+try {
+  console.log('🔧 Defining POST / route...');
+  router.post('/',
+    wrapHandler(authenticateToken),
+    wrapHandler(authorizeRoles('admin')),
+    wrapHandler(validateRequest(userValidationRules)),
+    wrapHandler(addUser)
+  );
+  console.log('✅ POST / route defined successfully');
+} catch (error) {
+  console.log('❌ Error defining POST / route:', error.message);
+}
 
-// GET /api/users/family/:id - Lấy user theo Family ID
-// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
-// Chỉ member trong family hoặc admin mới được xem
-router.get('/family/:id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(authorizeRoles('admin', 'family_admin', 'member')),
-  wrapHandler(getUserByFamilyId)
-);
+try {
+  console.log('🔧 Defining GET /family/:id route...');
+  router.get('/family/:id',
+    wrapHandler(authenticateToken),
+    wrapHandler(validateRequest(idValidationRule)),
+    wrapHandler(authorizeRoles('admin', 'family_admin', 'member')),
+    wrapHandler(getUserByFamilyId)
+  );
+  console.log('✅ GET /family/:id route defined successfully');
+} catch (error) {
+  console.log('❌ Error defining GET /family/:id route:', error.message);
+}
 
-// GET /api/users/:id/field/:field - Lấy một field cụ thể của user
-// ✅ ROUTE CỤ THỂ - có nhiều segments, phải đặt TRƯỚC /:id
-// Chỉ admin hoặc chính user đó mới được xem
-router.get('/:id/field/:field',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
-  wrapHandler(checkUserPermission),
-  wrapHandler(getUserField)
-);
+try {
+  console.log('🔧 Defining GET /:id/field/:field route...');
+  router.get('/:id/field/:field',
+    wrapHandler(authenticateToken),
+    wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
+    wrapHandler(checkUserPermission),
+    wrapHandler(getUserField)
+  );
+  console.log('✅ GET /:id/field/:field route defined successfully');
+} catch (error) {
+  console.log('❌ Error defining GET /:id/field/:field route:', error.message);
+}
 
-// GET /api/users/:id - Lấy user theo ID
-// ✅ ROUTE TỔNG QUÁT - phải đặt SAU tất cả routes cụ thể
-// Chỉ admin hoặc chính user đó mới được xem
-router.get('/:id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(checkUserPermission),
-  wrapHandler(getUserById)
-);
+try {
+  console.log('🔧 Defining GET /:id route...');
+  router.get('/:id',
+    wrapHandler(authenticateToken),
+    wrapHandler(validateRequest(idValidationRule)),
+    wrapHandler(checkUserPermission),
+    wrapHandler(getUserById)
+  );
+  console.log('✅ GET /:id route defined successfully');
+} catch (error) {
+  console.log('❌ Error defining GET /:id route:', error.message);
+}
 
-// PUT /api/users/:id - Cập nhật user
-// PUT/DELETE có thể đặt sau GET vì ít conflict hơn
-// Chỉ admin hoặc chính user đó mới được cập nhật
-router.put('/:id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...updateUserValidationRules])),
-  wrapHandler(checkUserPermission),
-  wrapHandler(updateUser)
-);
+try {
+  console.log('🔧 Defining PUT /:id route...');
+  router.put('/:id',
+    wrapHandler(authenticateToken),
+    wrapHandler(validateRequest([...idValidationRule, ...updateUserValidationRules])),
+    wrapHandler(checkUserPermission),
+    wrapHandler(updateUser)
+  );
+  console.log('✅ PUT /:id route defined successfully');
+} catch (error) {
+  console.log('❌ Error defining PUT /:id route:', error.message);
+}
 
-// DELETE /api/users/:id - Xóa user
-// Chỉ admin mới được xóa user
-router.delete('/:id',
-  wrapHandler(authenticateToken),
-  wrapHandler(authorizeRoles('admin')),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(deleteUser)
-);
+try {
+  console.log('🔧 Defining DELETE /:id route...');
+  router.delete('/:id',
+    wrapHandler(authenticateToken),
+    wrapHandler(authorizeRoles('admin')),
+    wrapHandler(validateRequest(idValidationRule)),
+    wrapHandler(deleteUser)
+  );
+  console.log('✅ DELETE /:id route defined successfully');
+} catch (error) {
+  console.log('❌ Error defining DELETE /:id route:', error.message);
+}
+
+console.log('🎉 All user routes defined successfully');
 
 export default router;

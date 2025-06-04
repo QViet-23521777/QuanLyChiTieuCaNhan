@@ -77,23 +77,39 @@ export const apiLimiter = createRateLimit(
   'API rate limit exceeded'
 );
 
-export const sanitizeInput = (req: Request, res: Response, next: NextFunction) => 
-{
-    const sanitize = (obj: any): any => 
-    {
-        if(typeof obj === 'string')
-        {
+export const sanitizeInput = (req: Request, res: Response, next: NextFunction) => {
+    const sanitize = (obj: any): any => {
+        if (typeof obj === 'string') {
             return obj
-                    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-                    .replace(/<iframe[^>]*>/gi, '')
-                    .replace(/<object[^>]*>/gi, '')
-                    .replace(/<embed[^>]*>/gi, '')
-                    .replace(/<link[^>]*>/gi, '')
-                    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
-                    .replace(/javascript:/gi, '')
-                    .replace(/data:text\/html[^"'>]*/gi, '');
+                .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                .replace(/<iframe[^>]*>/gi, '')
+                .replace(/<object[^>]*>/gi, '')
+                .replace(/<embed[^>]*>/gi, '')
+                .replace(/<link[^>]*>/gi, '')
+                .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+                .replace(/javascript:/gi, '')
+                .replace(/data:text\/html[^"'>]*/gi, '');
         }
+        
+        // Xử lý object
+        if (typeof obj === 'object' && obj !== null) {
+            if (Array.isArray(obj)) {
+                return obj.map(item => sanitize(item));
+            } else {
+                const sanitized: any = {};
+                for (const key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        sanitized[key] = sanitize(obj[key]);
+                    }
+                }
+                return sanitized;
+            }
+        }
+        
+        // Trả về giá trị gốc nếu không phải string hoặc object
+        return obj;
     };
+
     if (req.body) {
         req.body = sanitize(req.body);
     }
@@ -105,10 +121,10 @@ export const sanitizeInput = (req: Request, res: Response, next: NextFunction) =
     if (req.params) {
         req.params = sanitize(req.params);
     }
+    
     console.log('Input sanitized for:', req.method, req.originalUrl);
-  
     next();
-};//loại bỏ tác nhân gây hại
+};
 
 export const validateContentType = (req: Request, res: Response, next: NextFunction): void => {
   if (['POST', 'PUT', 'PATCH'].includes(req.method)) {

@@ -135,83 +135,161 @@ const wrapHandler = (handler: any): express.RequestHandler => {
   };
 };
 
-// POST /api/families - Tạo family mới
-// POST routes thường không conflict, nhưng tốt nhất đặt trước GET
-// Chỉ admin mới được tạo family
-router.post('/',
-  wrapHandler(authenticateToken),
-  wrapHandler(authorizeRoles('admin')),
-  wrapHandler(validateRequest(familyValidationRules)),
-  wrapHandler(addFaimly)
-);
+// familyRouter.ts
 
-// GET /api/families/member/:membersId - Lấy family theo Member ID
-// ✅ ROUTE CỤ THỂ - có path prefix, phải đặt TRƯỚC /:id
-// Chỉ admin hoặc chính member đó mới được xem
-router.get('/member/:membersId',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(memberIdValidationRule)),
-  wrapHandler(authorizeRoles('admin', 'family_admin', 'member')),
-  wrapHandler(getFamilyIdByMemberId)
-);
+console.log('🚀 Starting Family Router initialization...');
 
-// POST /api/families/:id/members - Thêm member vào family
-// ✅ ROUTE CỤ THỂ - có nhiều segments, phải đặt TRƯỚC /:id
-// Chỉ admin hoặc family_admin mới được thêm member
-router.post('/:id/members',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...addMemberValidationRules])),
-  wrapHandler(authorizeRoles('admin', 'family_admin')),
-  wrapHandler(addMember)
-);
+// ✅ POST ROUTES ĐƠN GIẢN - ĐẶT ĐẦU TIÊN (không conflict)
+try {
+  console.log('🔧 Defining POST / route...');
+  router.post('/',
+    (req, res, next) => {
+      console.log('📝 [POST /families] - Tạo family mới');
+      next();
+    },
+    wrapHandler(authenticateToken),
+    wrapHandler(authorizeRoles('admin')),
+    wrapHandler(validateRequest(familyValidationRules)),
+    wrapHandler(addFaimly)
+  );
+  console.log('✅ POST / route defined successfully');
+} catch (error) {
+  console.log('❌ Error defining POST / route:', error.message);
+}
 
-// GET /api/families/:id/field/:field - Lấy một field cụ thể của family
-// ✅ ROUTE CỤ THỂ - có nhiều segments, phải đặt TRƯỚC /:id
-// Chỉ admin hoặc member trong family mới được xem
-router.get('/:id/field/:field',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
-  wrapHandler(checkFamilyPermission),
-  wrapHandler(getFamilyField)
-);
+// ✅ GET ROUTES CỤ THỂ NHẤT - ĐẶT TRƯỚC CÁC ROUTES TỔNG QUÁT
+try {
+  console.log('🔧 Defining GET /member/:membersId route...');
+  router.get('/member/:membersId',
+    (req, res, next) => {
+      console.log(`📋 [GET /families/member/${req.params.membersId}] - Lấy family theo Member ID`);
+      next();
+    },
+    wrapHandler(authenticateToken),
+    wrapHandler(validateRequest(memberIdValidationRule)),
+    wrapHandler(authorizeRoles('admin', 'family_admin', 'member')),
+    wrapHandler(getFamilyIdByMemberId)
+  );
+  console.log('✅ GET /member/:membersId route defined successfully');
+} catch (error) {
+  console.log('❌ Error defining GET /member/:membersId route:', error.message);
+}
 
-// DELETE /api/families/:id/members - Xóa member khỏi family
-// ✅ ROUTE CỤ THỂ - có nhiều segments, phải đặt TRƯỚC /:id
-// Chỉ admin hoặc family_admin mới được xóa member
-router.delete('/:id/members',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...removeMemberValidationRules])),
-  wrapHandler(authorizeRoles('admin', 'family_admin')),
-  wrapHandler(removeMember)
-);
+// ✅ POST ROUTES PHỨC TẠP - CÓ NHIỀU SEGMENTS
+try {
+  console.log('🔧 Defining POST /:id/members route...');
+  router.post('/:id/members',
+    (req, res, next) => {
+      console.log(`👥 [POST /families/${req.params.id}/members] - Thêm member vào family`);
+      next();
+    },
+    wrapHandler(authenticateToken),
+    wrapHandler(validateRequest([...idValidationRule, ...addMemberValidationRules])),
+    wrapHandler(authorizeRoles('admin', 'family_admin')),
+    wrapHandler(addMember)
+  );
+  console.log('✅ POST /:id/members route defined successfully');
+} catch (error) {
+  console.log('❌ Error defining POST /:id/members route:', error.message);
+}
 
-// GET /api/families/:id - Lấy family theo ID
-// ✅ ROUTE TỔNG QUÁT - phải đặt SAU tất cả routes cụ thể
-// Chỉ admin hoặc member trong family mới được xem
-router.get('/:id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(checkFamilyPermission),
-  wrapHandler(getFamilybyId)
-);
+// ✅ GET ROUTES PHỨC TẠP - CÓ NHIỀU SEGMENTS
+try {
+  console.log('🔧 Defining GET /:id/field/:field route...');
+  router.get('/:id/field/:field',
+    (req, res, next) => {
+      console.log(`🔍 [GET /families/${req.params.id}/field/${req.params.field}] - Lấy field cụ thể`);
+      next();
+    },
+    wrapHandler(authenticateToken),
+    wrapHandler(validateRequest([...idValidationRule, ...fieldValidationRule])),
+    wrapHandler(checkFamilyPermission),
+    wrapHandler(getFamilyField)
+  );
+  console.log('✅ GET /:id/field/:field route defined successfully');
+} catch (error) {
+  console.log('❌ Error defining GET /:id/field/:field route:', error.message);
+}
 
-// PUT /api/families/:id - Cập nhật family
-// PUT/DELETE có thể đặt sau GET vì ít conflict hơn
-// Chỉ admin hoặc family_admin mới được cập nhật
-router.put('/:id',
-  wrapHandler(authenticateToken),
-  wrapHandler(validateRequest([...idValidationRule, ...updateFamilyValidationRules])),
-  wrapHandler(authorizeRoles('admin', 'family_admin')),
-  wrapHandler(updateFamily)
-);
+// ✅ DELETE ROUTES PHỨC TẠP - CÓ NHIỀU SEGMENTS
+try {
+  console.log('🔧 Defining DELETE /:id/members route...');
+  router.delete('/:id/members',
+    (req, res, next) => {
+      console.log(`🗑️ [DELETE /families/${req.params.id}/members] - Xóa member khỏi family`);
+      next();
+    },
+    wrapHandler(authenticateToken),
+    wrapHandler(validateRequest([...idValidationRule, ...removeMemberValidationRules])),
+    wrapHandler(authorizeRoles('admin', 'family_admin')),
+    wrapHandler(removeMember)
+  );
+  console.log('✅ DELETE /:id/members route defined successfully');
+} catch (error) {
+  console.log('❌ Error defining DELETE /:id/members route:', error.message);
+}
 
-// DELETE /api/families/:id - Xóa family
-// Chỉ admin mới được xóa family
-router.delete('/:id',
-  wrapHandler(authenticateToken),
-  wrapHandler(authorizeRoles('admin')),
-  wrapHandler(validateRequest(idValidationRule)),
-  wrapHandler(deleteFamily)
-);
+// ✅ GET ROUTES TỔNG QUÁT - ĐẶT SAU TẤT CẢ ROUTES CỤ THỂ
+try {
+  console.log('🔧 Defining GET /:id route...');
+  router.get('/:id',
+    (req, res, next) => {
+      console.log(`📖 [GET /families/${req.params.id}] - Lấy family theo ID`);
+      next();
+    },
+    wrapHandler(authenticateToken),
+    wrapHandler(validateRequest(idValidationRule)),
+    wrapHandler(checkFamilyPermission),
+    wrapHandler(getFamilybyId)
+  );
+  console.log('✅ GET /:id route defined successfully');
+} catch (error) {
+  console.log('❌ Error defining GET /:id route:', error.message);
+}
 
+// ✅ PUT/DELETE ROUTES ĐƠN GIẢN - ĐẶT CUỐI (ít conflict)
+try {
+  console.log('🔧 Defining PUT /:id route...');
+  router.put('/:id',
+    (req, res, next) => {
+      console.log(`✏️ [PUT /families/${req.params.id}] - Cập nhật family`);
+      next();
+    },
+    wrapHandler(authenticateToken),
+    wrapHandler(validateRequest([...idValidationRule, ...updateFamilyValidationRules])),
+    wrapHandler(authorizeRoles('admin', 'family_admin')),
+    wrapHandler(updateFamily)
+  );
+  console.log('✅ PUT /:id route defined successfully');
+} catch (error) {
+  console.log('❌ Error defining PUT /:id route:', error.message);
+}
+
+try {
+  console.log('🔧 Defining DELETE /:id route...');
+  router.delete('/:id',
+    (req, res, next) => {
+      console.log(`🗑️ [DELETE /families/${req.params.id}] - Xóa family`);
+      next();
+    },
+    wrapHandler(authenticateToken),
+    wrapHandler(authorizeRoles('admin')),
+    wrapHandler(validateRequest(idValidationRule)),
+    wrapHandler(deleteFamily)
+  );
+  console.log('✅ DELETE /:id route defined successfully');
+} catch (error) {
+  console.log('❌ Error defining DELETE /:id route:', error.message);
+}
+
+console.log('🎉 All family routes defined successfully');
+console.log('📋 Route order summary:');
+console.log('   1. POST / (tạo family) - Không conflict');
+console.log('   2. GET /member/:membersId - Route cụ thể nhất');
+console.log('   3. POST /:id/members - Route phức tạp');
+console.log('   4. GET /:id/field/:field - Route phức tạp');
+console.log('   5. DELETE /:id/members - Route phức tạp');
+console.log('   6. GET /:id - Route tổng quát');
+console.log('   7. PUT /:id - Route đơn giản');
+console.log('   8. DELETE /:id - Route đơn giản');
 export default router;

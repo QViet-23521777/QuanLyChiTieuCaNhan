@@ -47,15 +47,15 @@ app.use(requestSizeLimit);
 // app.use(apiVersion('1.0.0'));
 
 // Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
+/*app.get('/health', (req: Request, res: Response) => {
   res.json({ 
     success: true,
     message: 'Server is running',
     timestamp: new Date().toISOString()
   });
-});
+});*/
 
-console.log('✅ Middleware loaded successfully');
+//console.log('✅ Middleware loaded successfully');
 
 // ============================================
 // API routers - DEBUG TỪNG BƯỚC
@@ -72,7 +72,7 @@ const wrapMiddleware = (middleware: any) => {
 };
 
 // COMMENT TẤT CẢ ROUTES để test
-console.log('About to load routes...');
+//console.log('About to load routes...');
 
 // Test với chỉ 1 route đơn giản nhất
 try {
@@ -84,7 +84,7 @@ try {
 }
 
 // COMMENT TẤT CẢ ROUTES KHÁC để test
-/*
+
 try {
   console.log('Loading families router...');
   app.use('/api/families', familyrouters);
@@ -169,12 +169,12 @@ try {
 } catch (error) {
   console.log('❌ Error loading admin reviews router:', error);
 }
-*/
 
-console.log('All routes loaded successfully');
+
+//console.log('All routes loaded successfully');
 
 // 404 handler
-app.use('*', (req: Request, res: Response) => {
+app.use(/.*/, (req: Request, res: Response) => {
   res.status(404).json({
     success: false,
     message: 'API endpoint không tồn tại'
@@ -182,13 +182,55 @@ app.use('*', (req: Request, res: Response) => {
 });
 
 // Global error handler (phải để cuối cùng)
-app.use(errorHandler);
+//app.use(errorHandler);
 
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server đang chạy tại port ${PORT}`);
   console.log(`📱 Environment: ${process.env.NODE_ENV}`);
   console.log(`🔥 Firebase initialized successfully`);
+});
+console.log('\n🔍 Starting router import tests...');
+
+
+// 404 handler với logging
+/*app.use('*', (req, res) => {
+  console.log('🔍 404 Request:', req.method, req.originalUrl);
+  console.log('🔍 Headers:', req.headers);
+  res.status(404).json({
+    success: false,
+    message: 'Endpoint not found',
+    url: req.originalUrl,
+    method: req.method
+  });
+});*/
+
+// Error handler với logging chi tiết
+app.use((error, req, res, next) => {
+  console.log('🚨 ERROR DETAILS:');
+  console.log('- Message:', error.message);
+  console.log('- Stack:', error.stack);
+  console.log('- Request URL:', req.originalUrl);
+  console.log('- Request method:', req.method);
+  console.log('- Request params:', req.params);
+  console.log('- Request query:', req.query);
+  
+  res.status(500).json({
+    success: false,
+    message: 'Internal server error',
+    error: error.message,
+    url: req.originalUrl
+  });
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`🚀 Debug server running on port ${PORT}`);
+  console.log(`🌐 Test URLs:`);
+  console.log(`   - http://localhost:${PORT}/health`);
+  console.log(`   - http://localhost:${PORT}/test`);
+  console.log(`   - http://localhost:${PORT}/api/users (if mounted)`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 export default app;
