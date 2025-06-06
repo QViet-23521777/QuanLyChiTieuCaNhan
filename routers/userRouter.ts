@@ -126,7 +126,7 @@ try {
 try {
   console.log('🔧 Defining GET /family/:id route...');
   router.get('/family/:id',
-    wrapHandler(authenticateToken),
+    wrapHandler(authenticateToken), 
     wrapHandler(validateRequest(idValidationRule)),
     wrapHandler(authorizeRoles('admin', 'family_admin', 'member')),
     wrapHandler(getUserByFamilyId)
@@ -152,7 +152,7 @@ try {
 try {
   console.log('🔧 Defining GET /:id route...');
   router.get('/:id',
-    wrapHandler(authenticateToken),
+    wrapHandler(authenticateToken), 
     wrapHandler(validateRequest(idValidationRule)),
     wrapHandler(checkUserPermission),
     wrapHandler(getUserById)

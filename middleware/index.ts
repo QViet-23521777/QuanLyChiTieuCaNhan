@@ -110,16 +110,27 @@ export const sanitizeInput = (req: Request, res: Response, next: NextFunction) =
         return obj;
     };
 
+    // ✅ CÁCH SỬA: Sửa đổi từng thuộc tính thay vì gán lại toàn bộ object
     if (req.body) {
         req.body = sanitize(req.body);
     }
     
+    // ✅ SỬA req.query - không gán trực tiếp
     if (req.query) {
-        req.query = sanitize(req.query);
+        for (const key in req.query) {
+            if (req.query.hasOwnProperty(key)) {
+                req.query[key] = sanitize(req.query[key]);
+            }
+        }
     }
     
+    // ✅ SỬA req.params - không gán trực tiếp  
     if (req.params) {
-        req.params = sanitize(req.params);
+        for (const key in req.params) {
+            if (req.params.hasOwnProperty(key)) {
+                req.params[key] = sanitize(req.params[key]);
+            }
+        }
     }
     
     console.log('Input sanitized for:', req.method, req.originalUrl);

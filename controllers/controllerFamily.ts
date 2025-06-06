@@ -39,7 +39,7 @@ export const getFamilybyId = async ( req: Request, res: Response) =>
 export const getFamilyIdByMemberId = async ( req: Request, res: Response) =>
 {
     try{
-        const family = await familyServices.getFamilyIdByMemberId(req.params.memberId);
+        const family = await familyServices.getFamilyIdByMemberId(req.params.membersId);
         if(!family)
         {
             res.status(404).json({ error: "Family not found" });
@@ -62,6 +62,10 @@ export const addFaimly = async ( req: Request, res: Response) =>
             res.status(400).json({error: ( 'Invalid user data')});
             return; 
         }
+        const info = await familyServices.addFaimly( data );
+            res.status(201).json({ 
+              message: "Family created successfully"
+            });
     }catch (error) {
     console.error("Error creating family:", error);
     res.status(500).json({ error: "Failed to create family" });
@@ -72,7 +76,7 @@ export const addMember = async ( req: Request, res: Response) =>
 {
     try{
         const fId = req.params.id;
-        const uId = req.body.memberId;
+        const uId = req.body.membersId;
         if(!uId)
         {
             res.status(400).json({ error: "Member ID is required" });
@@ -92,14 +96,14 @@ export const deleteUser = async ( req: Request, res: Response) =>
 {
     try{
         const fId = req.params.id;
-        const uId = req.body.memberId;
+        const uId = req.body.membersId;
 
         if (!uId) {
             res.status(400).json({ error: "Member ID is required" });
             return;
         }
 
-        const family = await familyServices.getFamilybyId(uId);
+        const family = await familyServices.getFamilybyId(fId);
         if (!family) {
             res.status(404).json({ error: "Family not found" });
             return;
@@ -150,6 +154,9 @@ export const deleteFamily = async ( req: Request, res: Response) =>
             return;
         }
         await familyServices.deleteFamily(fId);
+        res.status(200).json({ 
+            message: "Family deleted successfully" 
+        });
     }
     catch (error) {
         console.error("Error deleting family:", error);

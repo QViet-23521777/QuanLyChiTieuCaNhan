@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "bcryptjs": "^3.0.2",
     "compression": "^1.8.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
@@ -10,6 +11,7 @@
     "firebase-admin": "^13.4.0",
     "firebase-functions": "^6.3.2",
     "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "path-to-regexp": "^6.2.1"
   },
@@ -18,9 +20,11 @@
     "start": "ts-node BE/appserver.ts"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/compression": "^1.8.0",
     "@types/cors": "^2.8.18",
     "@types/express": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.9",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.15.24",
     "nodemon": "^3.1.10",
@@ -28,14 +32,20 @@
     "typescript": "^5.8.3"
   },
   "overrides": {
-    "path-to-regexp": "6.2.1"
-  },"compilerOptions": {
-    "typeRoots": ["./node_modules/@types", "./types"],
-    "types": ["node", "express"]
+    "path-to-regexp": "*"
+  },
+  "compilerOptions": {
+    "typeRoots": [
+      "./node_modules/@types",
+      "./types"
+    ],
+    "types": [
+      "node",
+      "express"
+    ]
   },
   "include": [
     "**/*",
     "types/**/*"
   ]
-  
 }

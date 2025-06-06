@@ -90,20 +90,34 @@ export const updateUser = async (req: Request, res: Response)  =>
   }
 };
 
-export const deleteUser = async (req: Request, res: Response) =>
-{
-  try{
-    const userId = await userServices.getUserByFamilyId(req.params.id);
-    if(!userId) {
-      res.status(404).json({ error: "User not found" });
-      return;
-    } 
-    await userServices.deleteUser(req.params.id);
-  }
-   catch (error) {
+export const deleteUser = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id;
+    
+    // Kiểm tra user có tồn tại không
+    const existingUser = await userServices.getUserById(userId);
+    if (!existingUser) {
+      return res.status(404).json({ 
+        success: false,
+        error: "User not found" 
+      });
+    }
+    
+    // Xóa user
+    await userServices.deleteUser(userId);
+    
+    // Trả về response thành công
+    return res.status(200).json({
+      success: true,
+      message: "User deleted successfully"
+    });
+    
+  } catch (error) {
     console.error("Error deleting user:", error);
-    res.status(500).json({ error: "Failed to delete user" });
+    return res.status(500).json({ 
+      success: false,
+      error: "Failed to delete user" 
+    });
   }
 };
-
 

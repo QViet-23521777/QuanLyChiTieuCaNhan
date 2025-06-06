@@ -5,6 +5,7 @@ export interface User{
     name: string;
     email: string;
     familyId: string | null;
+    password: string;
     role: 'admin' | 'member';
     createdAt: Timestamp | Date;
     updatedAt: Timestamp | Date;

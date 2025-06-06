@@ -26,6 +26,7 @@ import chatroomrouters from '../routers/chatroomRouter';
 import messagerouters from '../routers/messageRouter';
 import socialpostrouters from '../routers/socialpostRouter';
 import reviewrouters from '../routers/reviewRouter';
+import authrouters from '../routers/authRouter';
 
 // Load environment variables
 dotenv.config();
@@ -47,13 +48,13 @@ app.use(requestSizeLimit);
 // app.use(apiVersion('1.0.0'));
 
 // Health check endpoint
-/*app.get('/health', (req: Request, res: Response) => {
+app.get('/health', (req: Request, res: Response) => {
   res.json({ 
     success: true,
     message: 'Server is running',
     timestamp: new Date().toISOString()
   });
-});*/
+});
 
 //console.log('✅ Middleware loaded successfully');
 
@@ -170,7 +171,13 @@ try {
   console.log('❌ Error loading admin reviews router:', error);
 }
 
-
+try {
+  console.log('Loading auth router...');
+  app.use('/api/auth', authrouters);
+  console.log('✅ Auth router loaded');
+} catch (error) {
+  console.log('❌ Error loading auth router:', error);
+}
 //console.log('All routes loaded successfully');
 
 // 404 handler
