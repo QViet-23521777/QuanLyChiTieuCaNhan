@@ -63,6 +63,13 @@ export const getPostByFamilyId = async (familyId: string)  =>
             field: 'familyId', operator: 'array-contains', value:familyId
         }]);
     }
+//lấy post bằng id người comment
+export const getPostByCommentId = async (commentId: string)  =>
+    {
+        return await queryDocuments(COLLECTION_NAME,[{
+            field: 'commentsId', operator: 'array-contains', value:commentId
+        }]);
+    }
 //cập nhật bài đăng
 export const updatePost = async (postId: string, postData: Partial<SocialPost>)
 :Promise<void> =>{

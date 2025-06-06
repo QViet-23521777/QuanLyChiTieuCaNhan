@@ -1,0 +1,221 @@
+🔥 Firebase Services Backend Test Report
+========================================
+Environment: http://localhost:3000
+Timestamp: Thu, Jun  5, 2025 12:04:42 AM
+Log file: test_results_20250605_000442.log
+
+[0;34m=== 1. HEALTH CHECK ===[0m
+
+[0;34mTesting: GET /health[0m
+[0;32m✅ SUCCESS - Status: 200, Time: 0.002235s[0m
+Response: {"success":true,"message":"Server is running","timestamp":"2025-06-04T17:04:42.507Z"}
+
+[0;34m=== 2. PUBLIC ENDPOINTS ===[0m
+
+[0;34mTesting: GET /api/public/status[0m
+[0;31m❌ NOT FOUND - Status: 404[0m
+Response: <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /api/public/status</pre>
+</body>
+</html>
+
+[0;34mTesting: GET /api/users[0m
+[0;31m❌ NOT FOUND - Status: 404[0m
+Response: <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /api/users</pre>
+</body>
+</html>
+
+[0;34m=== 3. AUTHENTICATION TESTS ===[0m
+
+[0;34mTesting: GET /api/users[0m
+[0;31m❌ NOT FOUND - Status: 404[0m
+Response: <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /api/users</pre>
+</body>
+</html>
+
+[0;34mTesting: GET /api/profile[0m
+[0;31m❌ NOT FOUND - Status: 404[0m
+Response: <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /api/profile</pre>
+</body>
+</html>
+
+[0;34m=== 4. CRUD OPERATIONS ===[0m
+
+[0;34mTesting: POST /api/users[0m
+[1;33m⚠️  UNEXPECTED - Status: 403, Time: 0.002291s[0m
+Response: {"success":false,"message":"Token không hợp lệ hoặc đã hết hạn"}
+
+[0;34mTesting: POST /api/families[0m
+[1;33m⚠️  UNEXPECTED - Status: 403, Time: 0.003487s[0m
+Response: {"success":false,"message":"Token không hợp lệ hoặc đã hết hạn"}
+
+[0;34m=== 5. DATA ENDPOINTS ===[0m
+
+[0;34mTesting: GET /api/families[0m
+[0;31m❌ NOT FOUND - Status: 404[0m
+Response: <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /api/families</pre>
+</body>
+</html>
+
+[0;34mTesting: GET /api/accounts[0m
+[0;31m❌ NOT FOUND - Status: 404[0m
+Response: <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /api/accounts</pre>
+</body>
+</html>
+
+[0;34mTesting: GET /api/transactions[0m
+[0;31m❌ NOT FOUND - Status: 404[0m
+Response: <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /api/transactions</pre>
+</body>
+</html>
+
+[0;34mTesting: GET /api/albums[0m
+[0;31m❌ NOT FOUND - Status: 404[0m
+Response: <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /api/albums</pre>
+</body>
+</html>
+
+[0;34mTesting: GET /api/photos[0m
+[0;31m❌ NOT FOUND - Status: 404[0m
+Response: <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /api/photos</pre>
+</body>
+</html>
+
+[0;34mTesting: GET /api/chatrooms[0m
+[0;31m❌ NOT FOUND - Status: 404[0m
+Response: <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /api/chatrooms</pre>
+</body>
+</html>
+
+[0;34mTesting: GET /api/messages[0m
+[0;31m❌ NOT FOUND - Status: 404[0m
+Response: <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /api/messages</pre>
+</body>
+</html>
+
+[0;34mTesting: GET /api/social-posts[0m
+[0;31m❌ NOT FOUND - Status: 404[0m
+Response: <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /api/social-posts</pre>
+</body>
+</html>
+
+[0;34mTesting: GET /api/reviews[0m
+[0;31m❌ NOT FOUND - Status: 404[0m
+Response: <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /api/reviews</pre>
+</body>
+</html>
+
+[0;34m=== 6. PERFORMANCE TEST ===[0m
+Testing multiple requests to measure response time...
+
+[0;34mTesting: GET /health[0m
+[0;32m✅ SUCCESS - Status: 200, Time: 0.001801s[0m
+Response: {"success":true,"message":"Server is running","timestamp":"2025-06-04T17:04:48.068Z"}
+
+[0;34mTesting: GET /health[0m
+[0;32m✅ SUCCESS - Status: 200, Time: 0.002037s[0m
+Response: {"success":true,"message":"Server is running","timestamp":"2025-06-04T17:04:48.495Z"}
+
+[0;34mTesting: GET /health[0m
+[0;32m✅ SUCCESS - Status: 200, Time: 0.002389s[0m
+Response: {"success":true,"message":"Server is running","timestamp":"2025-06-04T17:04:48.891Z"}
+
+[0;34mTesting: GET /health[0m
+[0;32m✅ SUCCESS - Status: 200, Time: 0.001932s[0m
+Response: {"success":true,"message":"Server is running","timestamp":"2025-06-04T17:04:49.276Z"}
+
+[0;34mTesting: GET /health[0m
+[0;32m✅ SUCCESS - Status: 200, Time: 0.001944s[0m
+Response: {"success":true,"message":"Server is running","timestamp":"2025-06-04T17:04:49.648Z"}
+
+[0;34m=== 7. TEST SUMMARY ===[0m

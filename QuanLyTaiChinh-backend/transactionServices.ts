@@ -10,7 +10,9 @@ import {
 import { getAccountById, updateAccountBalance } from './accountServices';
 import { doc, serverTimestamp, collection, Timestamp } from 'firebase/firestore';
 import { RealtimeListenerService  } from './RealtimeListenerService';
-import { db } from '../BE/firebase';
+import { firestore } from '../BE/firebase';
+import admin from 'firebase-admin';
+
 const COLLECTION_NAME = 'Transaction';
 const COLLECTION_NAME1 = 'Account';
 // Hàm lấy trường cho Transaction
@@ -30,30 +32,41 @@ export const getTransactionField = async <K extends keyof Transaction>(
   }
 };
 // tạo giao dịch
-export const createTransaction = async (transactionData: Omit< Transaction, 'Id' | 'createdAt' | 'updatedAt'>)
-:Promise<string> =>{
-    return executeTransaction<string>(async (Transaction) =>{
-        const accountRef = doc(db, 'Account', transactionData.accountId);
-        const accountDoc = await Transaction.get(accountRef);
-        if(!accountDoc.exists())
-        {
-            throw new Error('Tài khoản không tồn tại');
-        }
-        const account = accountDoc.data() as Account;
-        let newBalance = account.balance;
-        if (transactionData.type === 'income') {
-            newBalance += transactionData.amount;
-          } else if (transactionData.type === 'expense') {
-            newBalance -= transactionData.amount;
-        }
-        Transaction.update(accountRef, { balance: newBalance, updatedAt: serverTimestamp()});
-        const transactionRef = doc(collection(db, COLLECTION_NAME));
-        Transaction.set(transactionRef,{
-            ...transactionData,
-            createdAt: serverTimestamp()
-        });
-        return transactionRef.id;
-    })
+export const createTransaction = async (
+  transactionData: Omit<Transaction, 'Id' | 'createdAt' | 'updatedAt'>
+): Promise<string> => {
+  return executeTransaction<string>(async (transaction) => {
+    // Sử dụng Admin SDK
+    const accountRef = firestore.collection('Account').doc(transactionData.accountId);
+    const accountDoc = await transaction.get(accountRef);
+    
+    if (!accountDoc.exists) {
+      throw new Error('Tài khoản không tồn tại');
+    }
+    
+    const account = accountDoc.data() as Account;
+    let newBalance = account.balance;
+    
+    if (transactionData.type === 'income') {
+      newBalance += transactionData.amount;
+    } else if (transactionData.type === 'expense') {
+      newBalance -= transactionData.amount;
+    }
+    
+    transaction.update(accountRef, { 
+      balance: newBalance, 
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    
+    const transactionRef = firestore.collection(COLLECTION_NAME).doc();
+    transaction.set(transactionRef, {
+      ...transactionData,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    
+    return transactionRef.id;
+  });
 };
 // lấy thông tin giao dịch bằng Id
 export const getTransactionById = async (transactionId: string): Promise<Transaction | null> => {
@@ -102,32 +115,38 @@ export const updateTransaction = async ( transactionId: string, transactionData:
 export const deleteTransaction = async ( transactionId: string) => {
   return await deleteDocument(COLLECTION_NAME, transactionId);
 };
-export const undoTransaction = async ( transactionId: string )
-:Promise<void> =>{
-  return executeTransaction(async(transaction) =>{
-    const transactionRef = doc(db, COLLECTION_NAME, transactionId);
+export const undoTransaction = async (transactionId: string): Promise<void> => {
+  return executeTransaction(async (transaction) => {
+    // Sử dụng Admin SDK
+    const transactionRef = firestore.collection(COLLECTION_NAME).doc(transactionId);
     const transactionDoc = await transaction.get(transactionRef);
-    if (!transactionDoc.exists()) {
+    
+    if (!transactionDoc.exists) {
       throw new Error('Giao dịch không tồn tại');
     }
+    
     const transactionData = transactionDoc.data() as Transaction;
-    const accountRef = doc(db, COLLECTION_NAME1, transactionData.accountId);
+    const accountRef = firestore.collection(COLLECTION_NAME1).doc(transactionData.accountId);
     const accountDoc = await transaction.get(accountRef);
-    if (!accountDoc.exists()) {
+    
+    if (!accountDoc.exists) {
       throw new Error('Tài khoản không tồn tại');
     }
+    
     const account = accountDoc.data() as Account;
     let nbalance = account.balance;
-    if(transactionData.type == 'income')
-    {
+    
+    if (transactionData.type === 'income') {
       nbalance -= transactionData.amount; 
-    }else if (transactionData.type === 'expense') {
+    } else if (transactionData.type === 'expense') {
       nbalance += transactionData.amount;
     }
-    transaction.update(accountRef,{
+    
+    transaction.update(accountRef, {
       balance: nbalance,
-      updatedAt: serverTimestamp()
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
     });
+    
     transaction.delete(transactionRef);
   });
 };

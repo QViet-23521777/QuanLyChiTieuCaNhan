@@ -8,7 +8,7 @@ import {
     getDocument
 } from './firestoreservices';
 import { RealtimeListenerService  } from './RealtimeListenerService';
-const COLLECTION_NAME = 'Users';
+const COLLECTION_NAME = 'User';
 // Hàm lấy trường cho User
 export const getUserField = async <K extends keyof User>(
     userId: string,
@@ -42,6 +42,12 @@ export const getUserByFamilyId = async(familyId: string)
 :Promise<User[] | null> =>{
     return await queryDocuments<User>(COLLECTION_NAME,[
         { field: 'familyId', operator: '==', value: familyId}
+    ]);
+};
+export const getUserByEmail = async (email: string)
+:Promise<User[] | null> =>{
+    return await queryDocuments<User>(COLLECTION_NAME,[
+        { field: 'email', operator: '==', value: email}
     ]);
 };
 //cập nhật người dùng
