@@ -136,7 +136,7 @@ export default function FoodsScreen() {
       </ScrollView>
       <TouchableOpacity
         style={styles.addBtn}
-        onPress={() => router.push('/Categories/AddExpense?defaultCategory=Ăn%20Uống')}
+        onPress={() => router.push('/(Categories)/AddExpense')}
       >
         <Text style={styles.addBtnText}>Thêm Khoản Chi</Text>
       </TouchableOpacity>

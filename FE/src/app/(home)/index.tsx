@@ -1,17 +1,18 @@
 import {View} from 'react-native';
-import styles from '../../styles/style';
+import styles from '../../styles/mainStyle';
 import SavingsGoalCard from '../../Components/SavingGoalCard';
 import TransactionScreen from '../../Components/TransactionSummary';
 import GreetingHeader from '../../Components/HomeHeader';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import mainStyles from '@/src/styles/mainStyle';
 
 export default function HomeScreen() {
     return (
-        <SafeAreaView style={{backgroundColor: '#6EB5FF'}}>
-            <View>
+        <SafeAreaView style={mainStyles.container}>
+            <SafeAreaView style={[mainStyles.topSheet, {padding: 24}]}>
                 <GreetingHeader />
-            </View>
-            <View style={{backgroundColor: '#F1FFF3', borderRadius: 80, marginTop: 50, padding: 30, height: '100%', width: '100%'}}>
+            </SafeAreaView>
+            <View style={mainStyles.bottomeSheet}>
                 <SavingsGoalCard />
                 <TransactionScreen />
             </View>

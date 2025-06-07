@@ -5,7 +5,7 @@ import { Link } from "expo-router";
 const NotificationButton = () => {
     return (
         <Link href="/notification" asChild>
-            <Pressable>
+            <Pressable style={{ marginRight: 16}}>
                 <MaterialCommunityIcons name="bell-outline" size={24} color="#000" />
             </Pressable>
         </Link>
