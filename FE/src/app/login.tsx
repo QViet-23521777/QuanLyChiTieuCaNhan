@@ -16,8 +16,32 @@ import {
 } from "@expo-google-fonts/montserrat";
 import mainStyles from "@/src/styles/mainStyle";
 
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/firebaseConfig'; // đúng theo đường dẫn bạn tạo
+import { router } from 'expo-router'; // nếu bạn dùng expo-router
+
+
 export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+
+    const handleLogin = async () => {
+  try {
+    setError('');
+    await signInWithEmailAndPassword(auth, email, password);
+    router.replace('/(home)'); // Chuyển sang màn hình chính sau khi đăng nhập
+  } catch (err: any) {
+    if (err.code === 'auth/user-not-found') {
+      setError('Tài khoản không tồn tại');
+    } else if (err.code === 'auth/wrong-password') {
+      setError('Mật khẩu không đúng');
+    } else {
+      setError('Đăng nhập thất bại');
+    }
+  }
+};  
 
     let [fontsLoaded] = useFonts({
         Montserrat_400Regular,
@@ -37,6 +61,7 @@ export default function Login() {
                     style={styles.input}
                     placeholder="example@example.com"
                     placeholderTextColor="#A0AFC0"
+                    onChangeText={setEmail}
                 />
                 <Text style={styles.label}>Mật khẩu</Text>
                 <View style={styles.passwordRow}>
@@ -45,6 +70,7 @@ export default function Login() {
                         placeholder="••••••••"
                         placeholderTextColor="#A0AFC0"
                         secureTextEntry={!showPassword}
+                        onChangeText={setPassword}
                     />
                     <TouchableOpacity
                         onPress={() => setShowPassword((v) => !v)}>
@@ -58,6 +84,9 @@ export default function Login() {
                         />
                     </TouchableOpacity>
                 </View>
+
+                {error ? <Text style={{ color: 'red', marginTop: 10 }}>{error}</Text> : null}
+
                 <TouchableOpacity style={styles.fingerprintRow}>
                     <Ionicons
                         name="finger-print-outline"
@@ -71,11 +100,11 @@ export default function Login() {
                         </Text>
                     </Text>
                 </TouchableOpacity>
-                <Link href="/(home)" asChild>
-                    <TouchableOpacity style={styles.loginBtn}>
+                {/* <Link href="/(home)" asChild> */}
+                    <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
                         <Text style={styles.loginBtnText}>Đăng Nhập</Text>
                     </TouchableOpacity>
-                </Link>
+                {/* </Link> */}
                 <Link href="/Forgot_Password" asChild>
                     <TouchableOpacity>
                         <Text style={styles.forgot}>Quên mật khẩu?</Text>
