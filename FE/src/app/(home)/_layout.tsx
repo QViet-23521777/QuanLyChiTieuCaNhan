@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import NotificationButton from "@/src/Components/NotificationButton";
 import ProfileButton from "@/src/Components/ProfileButton";
+import GroupButton from "@/src/Components/GroupButton";
 
 const HomeLayout = () => {
     return (
@@ -74,19 +75,20 @@ const HomeLayout = () => {
                         ),
                     }}
                 />
-                {/* <Tabs.Screen
-                    name="profile"
+                <Tabs.Screen
+                    name="social"
                     options={{
-                        title: "Profile",
+                        title: "Social",
                         tabBarIcon: ({ color }) => (
                             <MaterialCommunityIcons
-                                name="account-box-outline"
+                                name="account-group-outline"
                                 size={28}
                                 color={color}
                             />
                         ),
+                        headerRight: () => <GroupButton />,
                     }}
-                /> */}
+                />
             </Tabs>
         </SafeAreaProvider>
     );
