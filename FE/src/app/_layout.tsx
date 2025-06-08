@@ -2,10 +2,11 @@ import {Slot, Stack, Tabs} from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import NotificationButton from "@/src/Components/NotificationButton";
 import ProfileButton from "@/src/Components/ProfileButton";
+import { CategoryProvider } from '../context/categoryContext';
 
 const RootLayout = () => {
     return (
-        <SafeAreaProvider>
+        <CategoryProvider familyId="exampleFamilyId">
             <Stack
                 screenOptions={{
                     headerTransparent: true,
@@ -14,13 +15,17 @@ const RootLayout = () => {
                     headerTitleAlign: 'center',
                 }}>
                 <Stack.Screen name='index' options={{ headerShown: false }} />
+                <Stack.Screen name='OnBoarding1' options={{ headerShown: false }} />
+                <Stack.Screen name='OnBoarding2' options={{ headerShown: false }} />
+                <Stack.Screen name='login' options={{ headerShown: false }} />
                 <Stack.Screen name='(home)' options={{ headerShown: false }} />
                 <Stack.Screen name='notification' options={{ headerShown: true, title: 'Notification' }} />
                 <Stack.Screen name='search' options={{ headerShown: true, title: 'Search' }} />
                 <Stack.Screen name='calendar' options={{ headerShown: true, title: 'Calendar' }} />
                 <Stack.Screen name='transfer' options={{ headerShown: true, title: 'Transfer' }} />
+                <Stack.Screen name='groups' options={{ headerShown: true, title: 'Groups' }} />
             </Stack>
-        </SafeAreaProvider>
+        </CategoryProvider>
     )
 }
 

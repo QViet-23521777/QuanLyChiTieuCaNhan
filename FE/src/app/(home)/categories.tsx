@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, JSX } from "react";
 import {
     StyleSheet,
     Text,
@@ -19,58 +19,10 @@ import {
     Montserrat_400Regular,
 } from "@expo-google-fonts/montserrat";
 import { useRouter } from "expo-router";
-import AddCategoryModal from "@/src/Components/Add_more"; // adjust path as needed
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AddCategoryModal from "@/src/Components/Add_more";
 import { SafeAreaView } from "react-native-safe-area-context";
 import mainStyles from "@/src/styles/mainStyle";
-
-const categories = [
-    {
-        icon: <Ionicons name="restaurant-outline" size={36} color="#fff" />,
-        label: "Ăn Uống",
-    },
-    {
-        icon: <MaterialIcons name="directions-bus" size={36} color="#fff" />,
-        label: "Di Chuyển",
-    },
-    {
-        icon: <FontAwesome5 name="briefcase-medical" size={32} color="#fff" />,
-        label: "Y Tế",
-    },
-    {
-        icon: (
-            <MaterialCommunityIcons
-                name="shopping-outline"
-                size={36}
-                color="#fff"
-            />
-        ),
-        label: "Mua Sắm",
-    },
-    {
-        icon: <Ionicons name="home-outline" size={36} color="#fff" />,
-        label: "Nơi Ở",
-    },
-    {
-        icon: (
-            <MaterialCommunityIcons
-                name="gift-outline"
-                size={36}
-                color="#fff"
-            />
-        ),
-        label: "Quà Tặng",
-    },
-    {
-        icon: <FontAwesome5 name="piggy-bank" size={32} color="#fff" />,
-        label: "Tiết Kiệm",
-    },
-    {
-        icon: <MaterialIcons name="sports-esports" size={36} color="#fff" />,
-        label: "Giải Trí",
-    },
-    { icon: <Entypo name="plus" size={36} color="#fff" />, label: "Thêm" },
-];
+import { useCategory } from "@/src/context/categoryContext";
 
 export default function CategoriesScreen() {
     const [fontsLoaded] = useFonts({
@@ -79,115 +31,111 @@ export default function CategoriesScreen() {
     });
 
     const router = useRouter();
-    const [showAddModal, setShowAddModal] = React.useState(false);
-    const [customCategories, setCustomCategories] = React.useState<
-        { label: string }[]
-    >([]);
+    const { categories, loading } = useCategory();
+    const [showAddModal, setShowAddModal] = useState(false);
 
-    // Load custom categories on mount
-    React.useEffect(() => {
-        AsyncStorage.getItem("customCategories").then((data) => {
-            if (data) setCustomCategories(JSON.parse(data));
-        });
-    }, []);
+    const iconMap: Record<string, JSX.Element> = {
+        "Ăn Uống": (
+            <Ionicons name="restaurant-outline" size={36} color="#fff" />
+        ),
+        "Di Chuyển": (
+            <MaterialIcons name="directions-bus" size={36} color="#fff" />
+        ),
+        "Y Tế": (
+            <FontAwesome5 name="briefcase-medical" size={32} color="#fff" />
+        ),
+        "Mua Sắm": (
+            <MaterialCommunityIcons
+                name="shopping-outline"
+                size={36}
+                color="#fff"
+            />
+        ),
+        "Nơi Ở": <Ionicons name="home-outline" size={36} color="#fff" />,
+        "Quà Tặng": (
+            <MaterialCommunityIcons
+                name="gift-outline"
+                size={36}
+                color="#fff"
+            />
+        ),
+        "Tiết Kiệm": <FontAwesome5 name="piggy-bank" size={32} color="#fff" />,
+        "Giải Trí": (
+            <MaterialIcons name="sports-esports" size={36} color="#fff" />
+        ),
+    };
 
-    // Save custom categories whenever they change
-    React.useEffect(() => {
-        AsyncStorage.setItem(
-            "customCategories",
-            JSON.stringify(customCategories)
-        );
-    }, [customCategories]);
+    const navigateToScreen = (label: string) => {
+        switch (label) {
+            case "Ăn Uống":
+                router.push("../Foods");
+                break;
+            case "Di Chuyển":
+                router.push("../Transport");
+                break;
+            case "Y Tế":
+                router.push("../Med");
+                break;
+            case "Mua Sắm":
+                router.push("../Groceries");
+                break;
+            case "Nơi Ở":
+                router.push("../Rent");
+                break;
+            case "Quà Tặng":
+                router.push("../Gift");
+                break;
+            case "Tiết Kiệm":
+                router.push("../Saving");
+                break;
+            case "Giải Trí":
+                router.push("../Entertain");
+                break;
+            default:
+                alert(`Chưa có màn hình cho "${label}"`);
+        }
+    };
 
-    if (!fontsLoaded) return null;
+    if (!fontsLoaded || loading) return (
+        <Text>Loading...</Text>
+    );
 
     return (
         <SafeAreaView style={mainStyles.container}>
             <View style={mainStyles.topSheet} />
             <View style={mainStyles.bottomeSheet}>
                 <ScrollView contentContainerStyle={styles.grid}>
-                    {categories.map((cat, idx) => (
+                    {categories.map((cat) => (
                         <TouchableOpacity
-                            key={idx}
+                            key={cat.Id}
                             style={styles.catBtn}
-                            onPress={() => {
-                                if (cat.label === "Ăn Uống") {
-                                    router.push("../Foods");
-                                }
-                                if (cat.label === "Di Chuyển") {
-                                    router.push("../Transport");
-                                }
-                                if (cat.label === "Y Tế") {
-                                    router.push("../Med");
-                                }
-                                if (cat.label === "Mua Sắm") {
-                                    router.push("../Groceries");
-                                }
-                                if (cat.label === "Nơi Ở") {
-                                    router.push("../Rent");
-                                }
-                                if (cat.label === "Quà Tặng") {
-                                    router.push("../Gift");
-                                }
-                                if (cat.label === "Tiết Kiệm") {
-                                    router.push("../Saving");
-                                }
-                                if (cat.label === "Giải Trí") {
-                                    router.push("../Entertain");
-                                }
-                                if (cat.label === "Thêm") {
-                                    setShowAddModal(true);
-                                }
-                                // Add more navigation for other categories if needed
-                            }}>
-                            {cat.icon}
-                            <Text style={styles.catLabel}>{cat.label}</Text>
-                        </TouchableOpacity>
-                    ))}
-                    {/* Render custom categories */}
-                    {customCategories.map((cat, idx) => (
-                        <View
-                            key={`custom-${idx}`}
-                            style={{ position: "relative" }}>
-                            <TouchableOpacity
-                                style={styles.catBtn}
-                                onPress={() =>
-                                    router.push({
-                                        pathname: "../CustomCategory",
-                                        params: { name: cat.label },
-                                    })
-                                }>
+                            onPress={() => navigateToScreen(cat.name || "")}>
+                            {iconMap[cat.name || ""] || (
                                 <Ionicons
-                                    name="pricetag-outline"
+                                    name="apps-outline"
                                     size={36}
                                     color="#fff"
                                 />
-                                <Text style={styles.catLabel}>{cat.label}</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={styles.deleteBtn}
-                                onPress={() => {
-                                    setCustomCategories(
-                                        customCategories.filter(
-                                            (_, i) => i !== idx
-                                        )
-                                    );
-                                }}>
-                                <Ionicons
-                                    name="close-circle"
-                                    size={22}
-                                    color="#f44"
-                                />
-                            </TouchableOpacity>
-                        </View>
+                            )}
+                            <Text style={styles.catLabel}>{cat.name}</Text>
+                        </TouchableOpacity>
                     ))}
+
+                    {/* Nút thêm */}
+                    <TouchableOpacity
+                        style={styles.catBtn}
+                        onPress={() => setShowAddModal(true)}>
+                        <Entypo name="plus" size={36} color="#fff" />
+                        <Text style={styles.catLabel}>Thêm</Text>
+                    </TouchableOpacity>
                 </ScrollView>
             </View>
+
             <AddCategoryModal
                 visible={showAddModal}
                 onClose={() => setShowAddModal(false)}
                 onSave={(name) => {
-                    setCustomCategories([...customCategories, { label: name }]);
+                    // Không thêm local nữa, có thể thêm xử lý lưu vào Firestore tại đây nếu muốn
                     setShowAddModal(false);
                 }}
             />
@@ -196,44 +144,6 @@ export default function CategoriesScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#6EB5FF", position: "relative" },
-    topBackground: {
-        width: "100%",
-        height: 100,
-        backgroundColor: "#6EB5FF",
-        flexDirection: "row",
-        alignItems: "flex-end",
-        justifyContent: "space-between",
-        paddingHorizontal: 16,
-        paddingBottom: 12,
-    },
-    backBtn: { padding: 4 },
-    userBtn: { padding: 4 },
-    header: {
-        color: "#fff",
-        fontSize: 20,
-        fontFamily: "Montserrat_700Bold",
-        fontWeight: "bold",
-        textAlign: "center",
-        flex: 1,
-    },
-    contentBox: {
-        flex: 1,
-        backgroundColor: "#fff",
-        borderTopLeftRadius: 40,
-        borderTopRightRadius: 40,
-        borderBottomLeftRadius: 0,
-        borderBottomRightRadius: 0,
-        paddingVertical: 40,
-        alignItems: "center",
-        justifyContent: "center",
-        width: "100%",
-        position: "absolute",
-        top: 120,
-        left: 0,
-        right: 0,
-        bottom: 0,
-    },
     grid: {
         flexDirection: "row",
         flexWrap: "wrap",
@@ -260,11 +170,5 @@ const styles = StyleSheet.create({
         marginTop: 8,
         fontFamily: "Montserrat_400Regular",
         textAlign: "center",
-    },
-    deleteBtn: {
-        position: "absolute",
-        top: -8,
-        right: -8,
-        zIndex: 1,
     },
 });

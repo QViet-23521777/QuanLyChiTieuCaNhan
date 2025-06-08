@@ -4,7 +4,7 @@ import { Link } from "expo-router";
 
 const GroupButton = () => {
     return (
-        <Link href="/notification" asChild>
+        <Link href="/groups" asChild>
             <Pressable style={{ marginRight: 16}}>
                 <MaterialCommunityIcons name="account-group" size={24} color="#000" />
             </Pressable>
