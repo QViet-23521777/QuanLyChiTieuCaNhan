@@ -15,32 +15,43 @@ import {
     Montserrat_700Bold,
 } from "@expo-google-fonts/montserrat";
 import mainStyles from "@/src/styles/mainStyle";
-
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/firebaseConfig'; // đúng theo đường dẫn bạn tạo
+import {useUser} from '../../UserContext'; // Import UserContext để sử dụng Id người dùng
+import {login} from '../../QuanLyTaiChinh-backend/userServices'; // Đảm bảo đường dẫn này đúng với cấu trúc dự án của bạn
 import { router } from 'expo-router'; // nếu bạn dùng expo-router
-
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { User } from '../../models/types'; // Import kiểu User nếu cần
+import { getUserById } from '../../QuanLyTaiChinh-backend/userServices'; // Import hàm lấy thông tin người dùng
 export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    const [password, setPassword] = useState('');      
+    const [error, setError] = useState('');                           
 
     const handleLogin = async () => {
-  try {
+  try { 
+    console.log('Attempting to login with:', { email, password });
     setError('');
-    await signInWithEmailAndPassword(auth, email, password);
+    const user = await login(email, password); // Gọi hàm đăng nhập từ userServices
+    // const u = await getUserById(user);
+    // if(u === null)
+    //     {
+    //         return setError('Tài khoản không tồn tại');
+    //     } // Lấy thông tin người dùng sau khi đăng nhậ
+    await AsyncStorage.setItem('userId', user);
+    console.log('userId:', user);
     router.replace('/(home)'); // Chuyển sang màn hình chính sau khi đăng nhập
   } catch (err: any) {
-    if (err.code === 'auth/user-not-found') {
-      setError('Tài khoản không tồn tại');
-    } else if (err.code === 'auth/wrong-password') {
-      setError('Mật khẩu không đúng');
-    } else {
-      setError('Đăng nhập thất bại');
-    }
+  console.error('Login error:', err); // Thêm log để debug
+  
+  // Kiểm tra message thay vì code vì bạn đang throw Error thông thường
+  if (err.message === 'Email không tồn tại') {
+    setError('Tài khoản không tồn tại');
+  } else if (err.message === 'Mật khẩu không chính xác') {
+    setError('Mật khẩu không đúng');
+  } else {
+    setError(`Đăng nhập thất bại: ${err.message}`); // Hiển thị chi tiết lỗi
   }
+}
 };  
 
     let [fontsLoaded] = useFonts({
@@ -136,7 +147,6 @@ export default function Login() {
         </View>
     );
 }
-
 export const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#6EB5FF", alignItems: "center" },
     topBackground: {
