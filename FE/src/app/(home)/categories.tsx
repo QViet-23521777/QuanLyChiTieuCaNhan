@@ -32,7 +32,7 @@ export default function CategoriesScreen() {
     });
 
     const router = useRouter();
-    const { categories, loading, reload } = useCategory();
+    const { categories, loading } = useCategory();
     const [showAddModal, setShowAddModal] = useState(false);
 
     const iconMap: Record<string, JSX.Element> = {
