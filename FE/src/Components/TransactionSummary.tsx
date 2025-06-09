@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, use } from "react";
 import {
     View,
     Text,
@@ -8,7 +8,10 @@ import {
     SafeAreaView,
 } from "react-native";
 import TransactionItem from "./TransactionItem"; // Reuse từ phần trước
-
+import { User, Transaction } from "@/models/types"; // Giả sử bạn đã định nghĩa User trong models/types.ts
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getUserById } from "../../QuanLyTaiChinh-backend/userServices";
+import { getTransactionsByDate, getTransactionsByYear, getTransactionsByMonth, getTransactionsByUserId} from '@/QuanLyTaiChinh-backend/transactionServices'; // Giả sử bạn đã định nghĩa hàm này
 const filters = ["Ngày", "Tuần", "Tháng"];
 
 const allData = {
@@ -29,7 +32,60 @@ const allData = {
 
 const TransactionScreen = () => {
     const [selectedFilter, setSelectedFilter] = useState("Tháng");
-
+    const [userId, setUserId] = useState<string | null>(null);
+    const [user, setUser] = useState<User | null>(null);
+    const [tránsactions, setTransactions] = useState<Transaction[] | null>([]); // Thay any bằng kiểu dữ liệu thực tế của bạn
+     useEffect(() => {
+        const fetchUserId = async () => {
+            const id = await AsyncStorage.getItem('userId');
+            console.log('Fetched userId:', id); // Thêm dòng này
+            setUserId(id);
+        };
+        fetchUserId();
+    }, []);
+    useEffect(() => {
+    const fetchTransactions = async () => {
+        if (userId) {
+            try {
+                let trans: Transaction[] = [];
+                const currentDate = new Date();
+                
+                switch (selectedFilter) {
+                    case "Ngày":
+                        // Lấy transactions hôm nay
+                        trans = await getTransactionsByDate(userId, currentDate);
+                        break;
+                        
+                    case "Tháng":
+                        // Lấy transactions tháng hiện tại
+                        const currentMonth = currentDate.getMonth() + 1; // +1 vì getMonth() trả về 0-11
+                        const currentYear = currentDate.getFullYear();
+                        trans = await getTransactionsByMonth(userId, currentMonth, currentYear);
+                        break;
+                        
+                    case "Năm":
+                        // Lấy transactions năm hiện tại
+                        const year = currentDate.getFullYear();
+                        trans = await getTransactionsByYear(userId, year);
+                        break;
+                        
+                    case "Tất cả":
+                    default:
+                        // Lấy tất cả transactions của user
+                        trans = await getTransactionsByUserId(userId);
+                        break;
+                }
+                
+                console.log(`Fetched ${selectedFilter} transactions:`, trans);
+                setTransactions(trans);
+            } catch (error) {
+                console.error('Error fetching transactions:', error);
+                setTransactions([]);
+            }
+        }
+    };
+    fetchTransactions();
+}, [userId, selectedFilter]); 
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.filterRow}>

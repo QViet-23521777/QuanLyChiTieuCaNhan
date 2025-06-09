@@ -6,7 +6,7 @@ import NotificationButton from "@/src/Components/NotificationButton";
 import ProfileButton from "@/src/Components/ProfileButton";
 import GroupButton from "@/src/Components/GroupButton";
 import { useUser } from '../../../UserContext';
-import { User } from '../../../models/types';
+import { User, Transaction } from '../../../models/types';
 import { getUserById } from '../../../QuanLyTaiChinh-backend/userServices'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -31,6 +31,7 @@ const HomeLayout = () => {
         };
         fetchUser();
     }, [userId]);
+
     return (
         <SafeAreaProvider>
             <Tabs

@@ -5,7 +5,8 @@ import {
   queryDocuments, 
   executeTransaction, 
   updateDocument,
-  deleteDocument, listenDocument
+  deleteDocument, listenDocument,
+  getCollection
 } from './firestoreservices';
 import { getAccountById, updateAccountBalance } from './accountServices';
 import { doc, serverTimestamp, collection, Timestamp } from 'firebase/firestore';
@@ -137,3 +138,175 @@ export const listenToFamily = async(userId: string,callback: (user: Transaction 
   const realtimeService = new RealtimeListenerService()
   return realtimeService.listenToDocument<Transaction>(COLLECTION_NAME, userId, callback);
 }
+export const getAllTransactions = async (): Promise<Transaction[]> => {
+  try {
+    return await getCollection<Transaction>(COLLECTION_NAME);
+  } catch (error) {
+    console.error('Lỗi khi lấy tất cả Transaction:', error);
+    throw error;
+  }
+};
+// Lọc giao dịch theo ngày cụ thể
+export const getTransactionsByDate = async (
+  userId: string,
+  date: string | Date
+): Promise<Transaction[]> => {
+  try {
+    const targetDate = typeof date === 'string' ? new Date(date) : date;
+    const startOfDay = new Date(targetDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(targetDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    return await queryDocuments<Transaction>(
+      COLLECTION_NAME,
+      [
+        { field: 'userId', operator: '==', value: userId },
+        { field: 'date', operator: '>=', value: startOfDay },
+        { field: 'date', operator: '<=', value: endOfDay }
+      ],
+      'date',
+      'desc'
+    );
+  } catch (error) {
+    console.error('Lỗi khi lọc giao dịch theo ngày:', error);
+    throw error;
+  }
+};
+
+// Lọc giao dịch theo tháng và năm
+export const getTransactionsByMonth = async (
+  userId: string,
+  month: number,
+  year: number
+): Promise<Transaction[]> => {
+  try {
+    const startOfMonth = new Date(year, month - 1, 1);
+    const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999);
+
+    return await queryDocuments<Transaction>(
+      COLLECTION_NAME,
+      [
+        { field: 'userId', operator: '==', value: userId },
+        { field: 'date', operator: '>=', value: startOfMonth },
+        { field: 'date', operator: '<=', value: endOfMonth }
+      ],
+      'date',
+      'desc'
+    );
+  } catch (error) {
+    console.error('Lỗi khi lọc giao dích theo tháng:', error);
+    throw error;
+  }
+};
+
+// Lọc giao dịch theo năm
+export const getTransactionsByYear = async (
+  userId: string,
+  year: number
+): Promise<Transaction[]> => {
+  try {
+    const startOfYear = new Date(year, 0, 1);
+    const endOfYear = new Date(year, 11, 31, 23, 59, 59, 999);
+
+    return await queryDocuments<Transaction>(
+      COLLECTION_NAME,
+      [
+        { field: 'userId', operator: '==', value: userId },
+        { field: 'date', operator: '>=', value: startOfYear },
+        { field: 'date', operator: '<=', value: endOfYear }
+      ],
+      'date',
+      'desc'
+    );
+  } catch (error) {
+    console.error('Lỗi khi lọc giao dịch theo năm:', error);
+    throw error;
+  }
+};
+
+// Lọc giao dịch trong khoảng thời gian
+export const getTransactionsByDateRange = async (
+  userId: string,
+  startDate: string | Date,
+  endDate: string | Date
+): Promise<Transaction[]> => {
+  try {
+    const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
+    const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
+    
+    // Set time cho start date là đầu ngày
+    start.setHours(0, 0, 0, 0);
+    // Set time cho end date là cuối ngày
+    end.setHours(23, 59, 59, 999);
+
+    return await queryDocuments<Transaction>(
+      COLLECTION_NAME,
+      [
+        { field: 'userId', operator: '==', value: userId },
+        { field: 'date', operator: '>=', value: start },
+        { field: 'date', operator: '<=', value: end }
+      ],
+      'date',
+      'desc'
+    );
+  } catch (error) {
+    console.error('Lỗi khi lọc giao dịch theo khoảng thời gian:', error);
+    throw error;
+  }
+};
+
+// Lọc giao dịch theo tuần (7 ngày gần nhất)
+export const getTransactionsByWeek = async (
+  userId: string,
+  weekStartDate?: string | Date
+): Promise<Transaction[]> => {
+  try {
+    const startDate = weekStartDate 
+      ? (typeof weekStartDate === 'string' ? new Date(weekStartDate) : weekStartDate)
+      : new Date();
+    
+    // Tìm ngày đầu tuần (Chủ nhật)
+    const dayOfWeek = startDate.getDay();
+    const startOfWeek = new Date(startDate);
+    startOfWeek.setDate(startDate.getDate() - dayOfWeek);
+    startOfWeek.setHours(0, 0, 0, 0);
+    
+    // Tìm ngày cuối tuần (Thứ 7)
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    return await queryDocuments<Transaction>(
+      COLLECTION_NAME,
+      [
+        { field: 'userId', operator: '==', value: userId },
+        { field: 'date', operator: '>=', value: startOfWeek },
+        { field: 'date', operator: '<=', value: endOfWeek }
+      ],
+      'date',
+      'desc'
+    );
+  } catch (error) {
+    console.error('Lỗi khi lọc giao dịch theo tuần:', error);
+    throw error;
+  }
+};
+
+// Hàm tiện ích: Lấy giao dịch hôm nay
+export const getTodayTransactions = async (userId: string): Promise<Transaction[]> => {
+  return await getTransactionsByDate(userId, new Date());
+};
+
+// Hàm tiện ích: Lấy giao dịch tháng hiện tại
+export const getCurrentMonthTransactions = async (userId: string): Promise<Transaction[]> => {
+  const now = new Date();
+  return await getTransactionsByMonth(userId, now.getMonth() + 1, now.getFullYear());
+};
+
+// Hàm tiện ích: Lấy giao dịch năm hiện tại
+export const getCurrentYearTransactions = async (userId: string): Promise<Transaction[]> => {
+  const now = new Date();
+  return await getTransactionsByYear(userId, now.getFullYear());
+};

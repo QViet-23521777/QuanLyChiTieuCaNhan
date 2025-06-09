@@ -1,13 +1,47 @@
-import React from "react";
+import React, {use, useEffect, useState} from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { User, Account } from '@/models/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAccountById, getAccountByUserId } from '../../QuanLyTaiChinh-backend/accountServices';
 
 const GreetingHeader = ({
-    username = "Pendragon",
     wallet = 5000000,
     expense = 3750000,
 }) => {
+    const [userId, setUserId] = useState<string | null>(null);
+    const [user, setUser] = useState<User | null>(null);
+    const [accounts, setAccounts] = useState<Account | null>(null);
+    useEffect(() => {
+        const fetchUserId = async () => {
+            const id = await AsyncStorage.getItem('userId');
+            console.log('Fetched userId:', id); // Thêm dòng này
+            setUserId(id);
+        };
+        fetchUserId();
+    }, []);
+    useEffect(() => {
+    const fetchAccount = async () => {
+        if (userId) {
+            try {
+                const accountData = await getAccountByUserId(userId);
+                
+                if (!accountData || accountData.length === 0) {
+                    console.log('No accounts found for user:', userId);
+                    setAccounts(null);
+                } else {
+                    console.log('Fetched accounts:', accountData);
+                    setAccounts(accountData[0]); // ← Lấy account đầu tiên
+                }
+            } catch (error) {
+                console.error('Error fetching accounts:', error);
+                setAccounts(null);
+            }
+        }
+    };
+    fetchAccount();
+}, [userId]); // ← Sửa dependency
     return (
         <SafeAreaView style={styles.container}>
             {/* Summary row */}
@@ -21,7 +55,7 @@ const GreetingHeader = ({
                         />
                         <Text style={styles.label}>Tổng Ví</Text>
                     </View>
-                    <Text style={styles.amount}>{wallet.toLocaleString()}</Text>
+                    <Text style={styles.amount}>{accounts?.balance.toString()}</Text>
                 </View>
 
                 <View style={styles.divider} />
@@ -36,7 +70,7 @@ const GreetingHeader = ({
                         <Text style={styles.label}>Tổng Chi</Text>
                     </View>
                     <Text style={styles.amount}>
-                        {expense.toLocaleString()}
+                        {accounts?.initialBalance.toString()}
                     </Text>
                 </View>
             </View>
