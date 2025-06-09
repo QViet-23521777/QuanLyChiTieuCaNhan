@@ -10,7 +10,9 @@ import { getUserById } from '@/QuanLyTaiChinh-backend/userServices';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAllCategories, getCategoryByName } from '@/QuanLyTaiChinh-backend/categoryServices';
 import { getAccountByUserId } from '@/QuanLyTaiChinh-backend/accountServices';  
-
+import { Timestamp } from 'firebase/firestore';
+// hoặc nếu dùng v8
+// import { Timestamp } from '@firebase/firestore-types';
 // Categories from Categories.tsx
 const defaultCategories = [
   { icon: <Ionicons name="restaurant-outline" size={28} color="#7EC6FF" />, label: 'Ăn Uống' },
@@ -223,11 +225,12 @@ export default function AddExpenseScreen() {
         Alert.alert('Lỗi', 'Không thể truy cập dữ liệu tài khoản. Vui lòng thử lại.');
         return;
       }
+      const d = Timestamp.fromDate(new Date(expenseDate))
 
       // Tạo transaction object với safe string conversion
       const transaction: Omit<Transaction, 'Id' | 'createdAt' | 'updatedAt'> = {
         amount: Math.abs(parseFloat(safeString(expenseAmount))), // Luôn lưu số dương
-        date: expenseDate.toISOString(),
+        date: d,
         type: transactionType, // Sử dụng trực tiếp từ state
         categoryId: safeString(categoryId),
         decription: safeString(note), // Sửa lỗi chính tả từ "decription" thành "description"

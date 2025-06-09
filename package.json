@@ -3,6 +3,7 @@
   "dependencies": {
     "@vercel/node": "^4.0.0",
     "axios": "^1.9.0",
+    "expo": "^53.0.11",
     "express": "^5.1.0",
     "firebase": "^11.8.1"
   }
