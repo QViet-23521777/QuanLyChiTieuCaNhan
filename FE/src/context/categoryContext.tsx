@@ -7,6 +7,7 @@ const CategoryContext = createContext<any>(null);
 export const CategoryProvider = ({ children }: { children: React.ReactNode }) => {
     const [transactions, setTransactions] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -59,8 +60,33 @@ export const CategoryProvider = ({ children }: { children: React.ReactNode }) =>
         return () => unsubscribe();
     }, []);
 
+    useEffect(() => {
+        setLoading(true);
+
+        // 📌 Query đến collection "SocialPost"
+        const q = query(collection(db, "SocialPost"));
+        const unsubscribe = onSnapshot(
+            q,
+            (snapshot) => {
+                const items = snapshot.docs.map((doc) => ({
+                    Id: doc.id,
+                    ...doc.data(),
+                }));
+                setPosts(items);
+                setLoading(false);
+            },
+            (error) => {
+                console.error("Lỗi khi theo dõi Post:", error);
+                setLoading(false);
+            }
+        );
+
+        // ✅ Cleanup listener khi unmount
+        return () => unsubscribe();
+    }, []);
+
     return (
-        <CategoryContext.Provider value={{ transactions, categories, loading }}>
+        <CategoryContext.Provider value={{ transactions, categories, posts, loading }}>
             {children}
         </CategoryContext.Provider>
     );

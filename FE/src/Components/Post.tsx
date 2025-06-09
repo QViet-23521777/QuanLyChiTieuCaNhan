@@ -5,7 +5,7 @@ import TransactionItem from "./TransactionItem";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Comment from "./Comment";
 
-const Post = () => {
+const Post = ({ content }) => {
     const [showComments, setShowComments] = useState(false);
     const slideAnim = useRef(new Animated.Value(0)).current; // ban đầu chiều cao là 0
 
@@ -44,7 +44,7 @@ const Post = () => {
         <View>
             <View style={styles.card}>
                 <UserItem />
-                <Text style={styles.caption}>Đây là caption</Text>
+                <Text style={styles.caption}>{content}</Text>
                 <TransactionItem
                     title="Thu nhập"
                     time="18:27 - 30/4"
