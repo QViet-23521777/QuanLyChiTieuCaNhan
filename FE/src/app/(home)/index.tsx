@@ -5,6 +5,7 @@ import TransactionScreen from '../../Components/TransactionSummary';
 import GreetingHeader from '../../Components/HomeHeader';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import mainStyles from '@/src/styles/mainStyle';
+import AddButton from '@/src/Components/AddButton';
 import {analyzeSpending} from '@/gpt';
 
 const spendingData = `
@@ -29,6 +30,7 @@ export default function HomeScreen() {
                 {/* <Text>{result}</Text> */}
                 <TransactionScreen />
             </View>
+            <AddButton />
         </SafeAreaView>
     );
 }

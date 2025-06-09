@@ -1,8 +1,40 @@
-import React from 'react';
+import React, { useState, useEffect, use } from "react";
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
+import { User, Transaction } from "@/models/types";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {  getTotalExpense, getTotalIncome} from '@/QuanLyTaiChinh-backend/transactionServices'; // Giả sử bạn đã định nghĩa hàm này
 const SavingsGoalCard = () => {
+  const [userId, setUserId] = useState<string | null>(null);
+      const [user, setUser] = useState<User | null>(null);
+      const [totalIncome, setTotalIncome] = useState<string>('0');
+      const [totalExpense, setTotalExpense] = useState<string>('0');
+      useEffect(() => {
+        const fetchUserId = async () => {
+            const id = await AsyncStorage.getItem('userId');
+            console.log('Fetched userId:', id); // Thêm dòng này
+            setUserId(id);
+        };
+        fetchUserId();
+    }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      if (userId) {
+        try {
+          const income = await getTotalIncome(userId);
+          const i = income.toString();
+          const expense = await getTotalExpense(userId);
+          const e = expense.toString();
+          setTotalIncome(i);
+          setTotalExpense(e);
+        } catch (error) {
+          console.error('Error fetching data:', error);
+        }
+      }
+    };
+    fetchData();
+  }, [userId]);
+
   return (
     <View style={styles.container}>
       <View style={styles.leftSection}>
@@ -17,12 +49,12 @@ const SavingsGoalCard = () => {
       <View style={styles.rightSection}>
         <View style={styles.row}>
           <Text style={styles.label}>Thu nhập tháng trước</Text>
-          <Text style={styles.amount}>7,500,000</Text>
+          <Text style={styles.amount}>{totalIncome}</Text>
         </View>
         <View style={styles.separator} />
         <View style={styles.row}>
           <Text style={styles.label}>Chi tiêu tháng trước</Text>
-          <Text style={styles.amount}>3,750,000</Text>
+          <Text style={styles.amount}>{totalExpense}</Text>
         </View>
       </View>
     </View>

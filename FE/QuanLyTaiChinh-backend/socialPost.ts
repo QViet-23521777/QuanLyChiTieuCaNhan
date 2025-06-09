@@ -7,7 +7,8 @@ import {
     deleteDocument,
     queryDocuments,
     getDocument,
-    listenDocument
+    listenDocument,
+    getCollection
 } from './firestoreservices';
 import { getPhotoById } from './photoServices';
 import { getTransactionById } from './transactionServices';
@@ -57,12 +58,27 @@ export const getPostBytransactionId = async (transactionId: string)  =>
         }]);
     }
     //lấy post bằng ID giao dịch
-export const getPostByFamilyId = async (familyId: string)  =>
+export const getPostByFamilyId = async (familyId: string): Promise<SocialPost[]>  =>
     {
         return await queryDocuments(COLLECTION_NAME,[{
-            field: 'familyId', operator: 'array-contains', value:familyId
+            field: 'familyId', operator: '==', value:familyId
         }]);
     }
+//lấy post bằng id người comment
+export const getPostByCommentId = async (commentId: string)  =>
+    {
+        return await queryDocuments(COLLECTION_NAME,[{
+            field: 'commentsId', operator: 'array-contains', value:commentId
+        }]);
+    }
+    export const getAllSocialPosts = async (): Promise<SocialPost[]> => {
+  try {
+    return await getCollection<SocialPost>(COLLECTION_NAME);
+  } catch (error) {
+    console.error('Lỗi khi lấy tất cả SocialPost:', error);
+    throw error;
+  }
+};
 //cập nhật bài đăng
 export const updatePost = async (postId: string, postData: Partial<SocialPost>)
 :Promise<void> =>{
@@ -122,7 +138,7 @@ export const deleteTransactionToPost = async ( postId: string, transactionId: st
         }
     };
     //thêm một giao dịch vào post
-export const likePost = async ( postId: string, userId: string) =>
+export const likePost = async ( postId: string, userId: string): Promise<string> =>
     {
         const user = await getUserById(userId);
         const post = await getPostBySocialPostId(postId);
@@ -132,7 +148,10 @@ export const likePost = async ( postId: string, userId: string) =>
                 likes: [...post.likes,userId],
                 numlike: post.numlike +1
             })
+            const name = user?.name;
+            return name + " đã thích hình ";
         }
+        return "Có lỗi gì đó ";
     }
 //bỏ lượt thích
 export const unlikePost = async (postId: string, userId: string) =>
@@ -148,7 +167,7 @@ export const unlikePost = async (postId: string, userId: string) =>
         }
 }
 //thêm bình luận
-export const commentPost = async ( postId: string, commentId: string) =>
+export const commentPost = async ( postId: string, commentId: string) : Promise<string>=>
     {
         const com = await getCommentById(commentId);
         const post = await getPostBySocialPostId(postId);
@@ -157,8 +176,12 @@ export const commentPost = async ( postId: string, commentId: string) =>
             await updateDocument(COLLECTION_NAME,postId,{
                 commentId: [...post.commentsId,commentId],
                 numcom: post.numcom +1
-            })
+            });
+            const user = await getUserById(com?.userId)
+            const name = user?.name;
+            return name + " đã thích hình ";
         }
+        return "Có lỗi gì đó ";
     }
 //xóa comment
 export const deleteCommentPost = async (postId: string, commentId: string) =>

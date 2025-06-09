@@ -39,7 +39,7 @@ export interface Account{
 export interface Category{
     Id: string;
     name: string | null;
-    type: 'income' | 'expense';
+    type: 'income' | 'expense' | null;
     familyId: string;
     createdAt: Timestamp | Date;
     updatedAt: Timestamp | Date;
@@ -84,10 +84,11 @@ export interface Photo {
 }
 
 export interface Comment {
-    Id: string;
+    id: string;
     text: string;
     userId: string;
     userName: string;
+    socialPostId: string;
     createdAt: Timestamp | Date;
     updatedAt: Timestamp | Date;
 }
@@ -116,7 +117,7 @@ export interface Message {
 }
 
 export interface SocialPost {
-    Id: string;
+    id: string;
     type: 'photo' | 'expense' | 'achievement';
     content: string;
     photoId: string[];
