@@ -23,6 +23,7 @@ import AddCategoryModal from "@/src/Components/Add_more";
 import { SafeAreaView } from "react-native-safe-area-context";
 import mainStyles from "@/src/styles/mainStyle";
 import { useCategory } from "@/src/context/categoryContext";
+import { addCategory } from "@/src/service/categoryService";
 
 export default function CategoriesScreen() {
     const [fontsLoaded] = useFonts({
@@ -31,7 +32,7 @@ export default function CategoriesScreen() {
     });
 
     const router = useRouter();
-    const { categories, loading } = useCategory();
+    const { categories, loading, reload } = useCategory();
     const [showAddModal, setShowAddModal] = useState(false);
 
     const iconMap: Record<string, JSX.Element> = {
@@ -96,9 +97,7 @@ export default function CategoriesScreen() {
         }
     };
 
-    if (!fontsLoaded || loading) return (
-        <Text>Loading...</Text>
-    );
+    if (!fontsLoaded || loading) return <Text>Loading...</Text>;
 
     return (
         <SafeAreaView style={mainStyles.container}>
@@ -134,8 +133,13 @@ export default function CategoriesScreen() {
             <AddCategoryModal
                 visible={showAddModal}
                 onClose={() => setShowAddModal(false)}
-                onSave={(name) => {
-                    // Không thêm local nữa, có thể thêm xử lý lưu vào Firestore tại đây nếu muốn
+                onSave={async (name) => {
+                    try {
+                        await addCategory(name); // Thêm vào Firestore
+                        // await reload();
+                    } catch (err) {
+                        console.error("Lỗi khi thêm danh mục:", err);
+                    }
                     setShowAddModal(false);
                 }}
             />

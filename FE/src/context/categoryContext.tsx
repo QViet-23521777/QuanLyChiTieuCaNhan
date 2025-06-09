@@ -1,53 +1,37 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { onSnapshot, collection, query, where } from "firebase/firestore";
-import { db } from "@/firebaseConfig"; // đảm bảo đúng đường dẫn
-import { Category } from "@/types";
+import { db } from "@/firebaseConfig";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 
-// Kiểu dữ liệu cho Context
-interface CategoryContextType {
-    categories: Category[];
-    loading: boolean;
-}
+const CategoryContext = createContext<any>(null);
 
-// Context mặc định
-const CategoryContext = createContext<CategoryContextType>({
-    categories: [],
-    loading: true,
-});
-
-// Provider
-export const CategoryProvider: React.FC<{
-    children: React.ReactNode;
-    familyId: string; // lọc category theo family nếu cần
-}> = ({ children, familyId }) => {
-    const [categories, setCategories] = useState<Category[]>([]);
+export const CategoryProvider = ({ children }: { children: React.ReactNode }) => {
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!familyId) return;
+        setLoading(true);
 
-        const q = query(
-            collection(db, "Categories"),
-            where("familyId", "==", familyId)
-        );
+        // 📌 Query đến collection "Category"
+        const q = query(collection(db, "Category"));
         const unsubscribe = onSnapshot(
             q,
             (snapshot) => {
-                const fetched = snapshot.docs.map((doc) => ({
+                const items = snapshot.docs.map((doc) => ({
                     Id: doc.id,
-                    ...(doc.data() as Omit<Category, "Id">),
+                    ...doc.data(),
                 }));
-                setCategories(fetched);
-                setLoading(false); // ✅ dữ liệu đã tải xong
+                setCategories(items);
+                setLoading(false);
             },
             (error) => {
-                console.error("Lỗi khi lấy dữ liệu Category:", error);
-                setLoading(false); // vẫn phải tắt loading
+                console.error("Lỗi khi theo dõi Category:", error);
+                setLoading(false);
             }
         );
 
-        return () => unsubscribe(); // cleanup listener
-    }, [familyId]);
+        // ✅ Cleanup listener khi unmount
+        return () => unsubscribe();
+    }, []);
 
     return (
         <CategoryContext.Provider value={{ categories, loading }}>
@@ -56,5 +40,4 @@ export const CategoryProvider: React.FC<{
     );
 };
 
-// Hook để dùng trong component
 export const useCategory = () => useContext(CategoryContext);
