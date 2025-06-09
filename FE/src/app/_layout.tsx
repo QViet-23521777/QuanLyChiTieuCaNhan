@@ -3,9 +3,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import NotificationButton from "@/src/Components/NotificationButton";
 import ProfileButton from "@/src/Components/ProfileButton";
 import { CategoryProvider } from '../context/categoryContext';
+import { UserProvider } from '@/UserContext';
 
 const RootLayout = () => {
     return (
+    <UserProvider>
+
         <CategoryProvider>
             <Stack
                 screenOptions={{
@@ -26,6 +29,7 @@ const RootLayout = () => {
                 <Stack.Screen name='groups' options={{ headerShown: true, title: 'Groups' }} />
             </Stack>
         </CategoryProvider>
+    </UserProvider>
     )
 }
 

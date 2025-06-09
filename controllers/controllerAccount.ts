@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { Account } from '../../models/types';
-import * as accountServices from '../../services/accountServices';
+import { Account } from '../models/types';
+import * as accountServices from '../QuanLyTaiChinh-backend/accountServices';
 export const getAccountField = async (req: Request, res: Response) =>
 {
     try {

@@ -1,12 +1,36 @@
-import React from "react";
+import React, {use, useEffect, useState} from "react";
 import { Tabs } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import NotificationButton from "@/src/Components/NotificationButton";
 import ProfileButton from "@/src/Components/ProfileButton";
 import GroupButton from "@/src/Components/GroupButton";
+import { useUser } from '../../../UserContext';
+import { User } from '../../../models/types';
+import { getUserById } from '../../../QuanLyTaiChinh-backend/userServices'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HomeLayout = () => {
+    const [userId, setUserId] = useState<string | null>(null);
+    const [user, setUser] = useState<User | null>(null);
+    useEffect(() => {
+        const fetchUserId = async () => {
+            const id = await AsyncStorage.getItem('userId');
+            console.log('Fetched userId:', id); // Thêm dòng này
+            setUserId(id);
+        };
+        fetchUserId();
+    }, []);
+    useEffect(() => {
+        const fetchUser = async () => {
+            if (userId) {
+                const userData = await getUserById(userId);
+                console.log('Fetched user:', userData); // Thêm dòng này
+                setUser(userData);
+            }
+        };
+        fetchUser();
+    }, [userId]);
     return (
         <SafeAreaProvider>
             <Tabs
@@ -21,7 +45,7 @@ const HomeLayout = () => {
                     name="index"
                     options={{
                         title: "Home",
-                        headerTitle: "Chào Pendragon",
+                        headerTitle: "Chào " + (user?.name || "123"),
                         headerTitleStyle: {
                             fontSize: 20,
                             fontWeight: "bold",
