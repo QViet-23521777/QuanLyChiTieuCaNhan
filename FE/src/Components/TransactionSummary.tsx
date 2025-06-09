@@ -39,10 +39,10 @@ const TransactionScreen = () => {
     const [userId, setUserId] = useState<string | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [transactions, setTransactions] = useState<Transaction[] | null>([]); // Thay any bằng kiểu dữ liệu thực tế của bạn
-     useEffect(() => {
+    useEffect(() => {
         const fetchUserId = async () => {
-            const id = await AsyncStorage.getItem('userId');
-            console.log('Fetched userId:', id); // Thêm dòng này
+            const id = await AsyncStorage.getItem("userId");
+            console.log("Fetched userId:", id); // Thêm dòng này
             setUserId(id);
         };
         fetchUserId();
@@ -116,33 +116,24 @@ const TransactionScreen = () => {
             </View>
 
             <FlatList
-                data={transactions} 
+                data={transactions}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => {
-                    
-                    const date = new Date(item.date);
+                    const date = item.date.toDate();
 
-                    /* if (item.date?.toString()) {
-                        formattedTime = item.date
-                            .toString()
-                            .toLocaleString();
-                    } else if (item.date instanceof Date) {
-                        formattedTime = item.date.toLocaleString("vi-VN");
-                    } else {
-                        formattedTime = String(item.date); // fallback
-                    } */
-
-                    const formatted = date.toLocaleTimeString('vi-VN', {
-  hour: '2-digit',
-  minute: '2-digit',
-}) + ' - ' +
-date.toLocaleDateString('vi-VN');
+                    const formatted =
+                        date.toLocaleTimeString("vi-VN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        }) +
+                        " - " +
+                        date.toLocaleDateString("vi-VN");
 
                     return (
                         <TransactionItem
                             title={item.decription}
                             time={formatted}
-                            amount={item.amount} 
+                            amount={item.amount}
                         />
                     );
                 }}

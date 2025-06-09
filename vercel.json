@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/gpt.ts",
+      "use": "@vercel/node"
+    }
+  ]
+}

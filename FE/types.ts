@@ -52,7 +52,7 @@ export interface Transaction{
     decription: string | '';
     categoryId: string;
     accountId: string;
-    date: string | Date;
+    date: Timestamp
     userId: string;
     createdAt: Timestamp | Date;
     updatedAt: Timestamp | Date;
