@@ -1,35 +1,16 @@
-import React, { useState } from "react";
-import {
-    StyleSheet,
-    Text,
-    View,
-    TouchableOpacity,
-    ScrollView,
-} from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import {
-    useFonts,
-    Montserrat_700Bold,
-    Montserrat_400Regular,
-} from "@expo-google-fonts/montserrat";
-import { useRouter } from "expo-router";
-import Outline from "@/src/Components/Outline";
-import CalendarPicker from "@/src/Components/Calendar";
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { useFonts, Montserrat_700Bold, Montserrat_400Regular } from '@expo-google-fonts/montserrat';
+import { useRouter } from 'expo-router';
+import Outline from '@/src/Components/Outline';
+import CalendarPicker from '@/src/Components/Calendar';
+import { Transaction, User } from '@/models/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getTransactionsByCategory, getTransactionsByUserId } from '@/QuanLyTaiChinh-backend/transactionServices';
+import { getCategoryByName } from '@/QuanLyTaiChinh-backend/categoryServices';
 import { SafeAreaView } from "react-native-safe-area-context";
 import mainStyles from "@/src/styles/mainStyle";
-
-const initialExpenses = [
-    {
-        id: 1,
-        name: "Disney",
-        time: "14:00",
-        date: "11",
-        month: "3",
-        year: "2025",
-        amount: 1,
-    },
-    // Add more dummy data if needed
-];
 
 export default function GroceriesScreen() {
     const [fontsLoaded] = useFonts({
@@ -37,32 +18,141 @@ export default function GroceriesScreen() {
         Montserrat_400Regular,
     });
 
-    const [expenses] = useState(initialExpenses);
-    const router = useRouter();
+  const router = useRouter();
 
-    // Time picker state
-    const [mode, setMode] = useState<"day" | "month">("month");
-    const [selectedDate, setSelectedDate] = useState(new Date());
-    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  // Time picker state
+  const [mode, setMode] = useState<'day' | 'month'>('month');
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-    if (!fontsLoaded) return null;
+  // Fetch userId from AsyncStorage
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const id = await AsyncStorage.getItem("userId");
+        console.log("Fetched userId:", id);
+        setUserId(id);
+      } catch (error) {
+        console.error('Error fetching userId:', error);
+      }
+    };
+    fetchUserId();
+  }, []);
 
-    // Filter expenses
-    const filteredExpenses = expenses.filter((exp) => {
-        if (mode === "day") {
-            return (
-                parseInt(exp.date) === selectedDate.getDate() &&
-                parseInt(exp.month) === selectedDate.getMonth() + 1 &&
-                parseInt(exp.year) === selectedDate.getFullYear()
-            );
-        } else {
-            return (
-                parseInt(exp.month) === selectedMonth + 1 &&
-                parseInt(exp.year) === selectedYear
-            );
+  // Fetch transactions when userId is available
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (userId) {
+        try {
+          setLoading(true);
+          console.log("Starting to fetch transactions for userId:", userId);
+          
+          const cat = await getCategoryByName('Nơi Ở');
+          console.log("Category response:", cat);
+          
+          if (!cat || cat.length === 0) {
+            console.log("No category found with name 'Nơi Ở'");
+            setTransactions([]);
+            return;
+          }
+          
+          const category = cat[0];
+          console.log("Found category:", category);
+          
+          // Kiểm tra các thuộc tính có thể có của category
+          const categoryId = category.id || category.id;;
+          
+          if (!categoryId) {
+            console.log("Category ID is undefined. Category object:", category);
+            console.log("Available keys:", Object.keys(category));
+            setTransactions([]);
+            return;
+          }
+          
+          console.log("Using category ID:", categoryId);
+          const trans = await getTransactionsByCategory(categoryId);
+          
+          if (!trans || trans.length === 0) {
+            console.log("No transactions found for category 'Nơi Ở'");
+            setTransactions([]);
+            return;
+          }
+          
+          setTransactions(trans);
+          console.log('Fetched transactions for category:', trans.length);
+        } catch (error) {
+          console.error('Error fetching transactions:', error);
+          //console.error('Error details:', e.message);
+          setTransactions([]);
+        } finally {
+          setLoading(false);
         }
+      } else {
+        console.log("No userId available");
+        setLoading(false);
+      }
+    };
+    
+    fetchTransactions();
+  }, [userId]);
+
+  // Hàm format date từ Timestamp hoặc Date
+  const formatDate = (date: any) => {
+    let jsDate: Date;
+    
+    if (date?.toDate) {
+      // Firestore Timestamp
+      jsDate = date.toDate();
+    } else if (date instanceof Date) {
+      jsDate = date;
+    } else {
+      jsDate = new Date();
+    }
+    
+    return {
+      day: jsDate.getDate(),
+      month: jsDate.getMonth() + 1,
+      year: jsDate.getFullYear(),
+      time: jsDate.toLocaleTimeString('vi-VN', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      })
+    };
+  };
+
+  // Hàm lọc transactions theo mode và date được chọn
+  const getFilteredTransactions = () => {
+    return transactions.filter(transaction => {
+      const transactionDate = formatDate(transaction.createdAt);
+      
+      if (mode === 'month') {
+        return (
+          transactionDate.month === selectedMonth + 1 &&
+          transactionDate.year === selectedYear
+        );
+      } else {
+        // mode === 'day'
+        const selectedDay = selectedDate.getDate();
+        const selectedMonthDay = selectedDate.getMonth() + 1;
+        const selectedYearDay = selectedDate.getFullYear();
+        
+        return (
+          transactionDate.day === selectedDay &&
+          transactionDate.month === selectedMonthDay &&
+          transactionDate.year === selectedYearDay
+        );
+      }
     });
+  };
+
+  const filteredTransactions = getFilteredTransactions();
+
+  if (!fontsLoaded) return null;
 
     return (
         <SafeAreaView style={mainStyles.container}>

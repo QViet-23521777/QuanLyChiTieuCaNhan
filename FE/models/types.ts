@@ -37,7 +37,7 @@ export interface Account{
 }
 
 export interface Category{
-    Id: string;
+    id: string;
     name: string | null;
     type: 'income' | 'expense' | null;
     familyId: string;

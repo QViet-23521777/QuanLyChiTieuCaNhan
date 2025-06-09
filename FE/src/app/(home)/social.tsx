@@ -13,13 +13,11 @@ import { useRouter } from "expo-router";
 import { useCategory } from "@/src/context/categoryContext";
 import React, { useState, useEffect } from "react";
 import { User, SocialPost, Comment } from "@/models/types";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getPostByFamilyId } from "@/QuanLyTaiChinh-backend/socialPost";
-import { getUserById } from "@/QuanLyTaiChinh-backend/userServices";
-import {
-    getCommentById,
-    getCommentsByPostId,
-} from "@/QuanLyTaiChinh-backend/commentServices";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getPostByFamilyId } from '@/QuanLyTaiChinh-backend/socialPost';
+import { getUserById } from '@/QuanLyTaiChinh-backend/userServices';
+import { getCommentById, getCommentsByPostId } from '@/QuanLyTaiChinh-backend/commentServices';
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 // Thêm type để xử lý Timestamp từ Firebase
 interface FirebaseTimestamp {
@@ -31,6 +29,8 @@ interface FirebaseTimestamp {
 interface PostWithComments extends SocialPost {
     comments: Comment[];
 }
+
+// Đã chuyển các state này vào bên trong PostItem component để sử dụng biến post đúng scope
 
 // Component để render từng comment
 const CommentItem = ({ comment }: { comment: Comment }) => {
@@ -75,41 +75,37 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
 };
 
 // Component để render từng post với thông tin chi tiết
-const PostItem = ({
-    post,
-    comments,
-}: {
-    post: SocialPost;
-    comments: Comment[];
-}) => {
-    const [showComments, setShowComments] = useState(false);
 
-    const formatDate = (date: Date | FirebaseTimestamp | string | number) => {
-        if (!date) return "";
+const PostItem = ({ post, comments }: { post: SocialPost, comments: Comment[] }) => {
+  const [showComments, setShowComments] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(post.numlike || 0);
 
-        let d: Date;
-
-        // Xử lý các loại date khác nhau
-        if (typeof date === "object" && "toDate" in date) {
-            // Firebase Timestamp
-            d = (date as FirebaseTimestamp).toDate();
-        } else if (date instanceof Date) {
-            // JavaScript Date object
-            d = date;
-        } else {
-            // String hoặc number
-            d = new Date(date);
-        }
-
-        return (
-            d.toLocaleDateString("vi-VN") +
-            " " +
-            d.toLocaleTimeString("vi-VN", {
-                hour: "2-digit",
-                minute: "2-digit",
-            })
-        );
-    };
+  const handleLikePress = () => {
+    setLiked(!liked);
+    setLikeCount(prev => liked ? prev - 1 : prev + 1);
+  };
+  const formatDate = (date: Date | FirebaseTimestamp | string | number) => {
+    
+    let d: Date;
+    
+    // Xử lý các loại date khác nhau
+    if (typeof date === 'object' && 'toDate' in date) {
+      // Firebase Timestamp
+      d = (date as FirebaseTimestamp).toDate();
+    } else if (date instanceof Date) {
+      // JavaScript Date object
+      d = date;
+    } else {
+      // String hoặc number
+      d = new Date(date);
+    }
+    
+    return d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
 
     const getPostTypeText = (type: string) => {
         switch (type) {
@@ -166,15 +162,30 @@ const PostItem = ({
                 </View>
             )}
 
-            {/* Thống kê likes và comments */}
-            <View style={styles.postStats}>
-                <Text style={styles.postStatsText}>
-                    👍 {post.numlike || 0} lượt thích
-                </Text>
-                <Text style={styles.postStatsText}>
-                    💬 {post.numcom || 0} bình luận
-                </Text>
-            </View>
+      {/* Thống kê likes và comments */}
+      <View style={styles.postStats}>
+        <TouchableOpacity
+        style={{ flexDirection: 'row', alignItems: 'center' }}
+        onPress={handleLikePress}
+      >
+        <MaterialCommunityIcons
+          name={liked ? 'cards-heart' : 'cards-heart-outline'}
+          size={24}
+          color={liked ? 'red' : '#000'}
+        />
+        <Text style={styles.postStatsText}>{likeCount}</Text>
+      </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <MaterialCommunityIcons
+              name={"comment"} // 👈 Đổi icon tại đây
+              size={24}
+              color="#000"
+            />
+        <Text style={styles.postStatsText}>
+           {post.numcom || 0}
+        </Text>
+        </View>
+      </View>
 
             {/* Nút hiển thị/ẩn comments */}
             {comments.length > 0 && (
@@ -349,123 +360,123 @@ const SocialScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    postContainer: {
-        backgroundColor: "white",
-        marginHorizontal: 15,
-        marginVertical: 8,
-        borderRadius: 12,
-        padding: 15,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    postHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-        marginBottom: 12,
-    },
-    postHeaderLeft: {
-        flex: 1,
-    },
-    postHeaderRight: {
-        alignItems: "flex-end",
-    },
-    postAuthor: {
-        fontSize: 16,
-        fontWeight: "bold",
-        color: "#333",
-    },
-    postMeta: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginTop: 4,
-    },
-    postType: {
-        fontSize: 12,
-        color: "#666",
-        backgroundColor: "#f0f0f0",
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 10,
-        marginRight: 8,
-    },
-    postDate: {
-        fontSize: 12,
-        color: "#999",
-    },
-    postVisibility: {
-        fontSize: 12,
-        color: "#666",
-        fontStyle: "italic",
-    },
-    postContent: {
-        fontSize: 14,
-        lineHeight: 20,
-        color: "#333",
-        marginBottom: 12,
-    },
-    postInfo: {
-        marginBottom: 8,
-    },
-    postInfoText: {
-        fontSize: 12,
-        color: "#666",
-    },
-    postStats: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        paddingTop: 12,
-        borderTopWidth: 1,
-        borderTopColor: "#f0f0f0",
-    },
-    postStatsText: {
-        fontSize: 12,
-        color: "#666",
-    },
-    showCommentsButton: {
-        marginTop: 10,
-        paddingVertical: 8,
-    },
-    showCommentsText: {
-        fontSize: 14,
-        color: "#007AFF",
-        fontWeight: "500",
-    },
-    commentsSection: {
-        marginTop: 12,
-        paddingTop: 12,
-        borderTopWidth: 1,
-        borderTopColor: "#f0f0f0",
-    },
-    commentContainer: {
-        marginBottom: 12,
-        padding: 10,
-        backgroundColor: "#f8f9fa",
-        borderRadius: 8,
-    },
-    commentHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 6,
-    },
-    commentAuthor: {
-        fontSize: 14,
-        fontWeight: "600",
-        color: "#333",
-    },
-    commentDate: {
-        fontSize: 12,
-        color: "#999",
-    },
-    commentText: {
-        fontSize: 14,
-        lineHeight: 18,
-        color: "#333",
-    },
+  postContainer: {
+    backgroundColor: 'white',
+    marginHorizontal: 15,
+    marginVertical: 8,
+    borderRadius: 12,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  postHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  postHeaderLeft: {
+    flex: 1,
+  },
+  postHeaderRight: {
+    alignItems: 'flex-end',
+  },
+  postAuthor: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  postMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  postType: {
+    fontSize: 12,
+    color: '#666',
+    backgroundColor: '#f0f0f0',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginRight: 8,
+  },
+  postDate: {
+    fontSize: 12,
+    color: '#999',
+  },
+  postVisibility: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  postContent: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#333',
+    marginBottom: 12,
+  },
+  postInfo: {
+    marginBottom: 8,
+  },
+  postInfoText: {
+    fontSize: 12,
+    color: '#666',
+  },
+  postStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  postStatsText: {
+    fontSize: 15,
+    color: '#666',
+  },
+  showCommentsButton: {
+    marginTop: 10,
+    paddingVertical: 8,
+  },
+  showCommentsText: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '500',
+  },
+  commentsSection: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  commentContainer: {
+    marginBottom: 12,
+    padding: 10,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+  },
+  commentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  commentAuthor: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  commentDate: {
+    fontSize: 12,
+    color: '#999',
+  },
+  commentText: {
+    fontSize: 14,
+    lineHeight: 18,
+    color: '#333',
+  },
 });
 
 export default SocialScreen;
