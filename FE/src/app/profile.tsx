@@ -13,24 +13,114 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import styleIndex from "./(home)/index";
 import { SafeAreaView } from "react-native-safe-area-context";
 import mainStyles from "@/src/styles/mainStyle";
+import { User } from "@/models/types";
+import { getUserById } from "@/QuanLyTaiChinh-backend/userServices";
 
 export default function ProfileScreen() {
     const router = useRouter();
-    const [username, setUsername] = useState("Tên");
+    const [username, setUsername] = useState("Đang tải...");
     const [modalVisible, setModalVisible] = useState(false);
+    const [userId, setUserId] = useState<string | null>(null);
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    // Load username from AsyncStorage
+    // Load userId từ AsyncStorage và fetch user data
     useEffect(() => {
-        AsyncStorage.getItem("profile_username").then((name) => {
-            if (name) setUsername(name);
-        });
+        const loadUserData = async () => {
+            try {
+                setLoading(true);
+                
+                // Lấy userId từ AsyncStorage
+                const id = await AsyncStorage.getItem('userId');
+                console.log('Fetched userId:', id);
+                
+                if (id) {
+                    setUserId(id);
+                    
+                    // Fetch thông tin user từ backend
+                    const userData = await getUserById(id);
+                    console.log('Fetched user data:', userData);
+                    
+                    if (userData) {
+                        setUser(userData);
+                        // Hiển thị tên user, fallback về username đã lưu hoặc "Người dùng"
+                        const displayName = userData.name || userData.name || userData.email || "Người dùng";
+                        setUsername(displayName);
+                        
+                        // Lưu tên user vào AsyncStorage để dùng lần sau
+                        await AsyncStorage.setItem("profile_username", displayName);
+                    } else {
+                        // Nếu không fetch được data từ backend, dùng data đã lưu
+                        const savedName = await AsyncStorage.getItem("profile_username");
+                        setUsername(savedName || "Người dùng");
+                    }
+                } else {
+                    // Nếu không có userId, dùng tên đã lưu hoặc mặc định
+                    const savedName = await AsyncStorage.getItem("profile_username");
+                    setUsername(savedName || "Người dùng");
+                    console.log('No userId found, using saved name:', savedName);
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                // Fallback: dùng tên đã lưu trong AsyncStorage
+                try {
+                    const savedName = await AsyncStorage.getItem("profile_username");
+                    setUsername(savedName || "Người dùng");
+                } catch (storageError) {
+                    console.error('Error loading saved username:', storageError);
+                    setUsername("Người dùng");
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadUserData();
     }, []);
+
+    // Refresh user data khi component được focus lại
+    /*useEffect(() => {
+        const unsubscribe = router.addListener?.('focus', () => {
+            if (userId) {
+                refreshUserData();
+            }
+        });
+
+        return unsubscribe;
+    }, [userId, router]);*/
+
+    // Function để refresh user data
+    const refreshUserData = async () => {
+        if (!userId) return;
+        
+        try {
+            const userData = await getUserById(userId);
+            if (userData) {
+                setUser(userData);
+                const displayName = userData.name || userData.name || userData.email || "Người dùng";
+                setUsername(displayName);
+                await AsyncStorage.setItem("profile_username", displayName);
+            }
+        } catch (error) {
+            console.error('Error refreshing user data:', error);
+        }
+    };
 
     // Đăng xuất: Xoá dữ liệu và chuyển về màn hình đăng nhập
     const handleLogout = async () => {
-        await AsyncStorage.clear();
-        setModalVisible(false);
-        router.replace("/"); // hoặc router.push('/login') nếu có màn login
+        try {
+            await AsyncStorage.clear();
+            setModalVisible(false);
+            setUser(null);
+            setUserId(null);
+            setUsername("Người dùng");
+            router.replace("/"); // hoặc router.push('/login') nếu có màn login
+        } catch (error) {
+            console.error('Error during logout:', error);
+            // Vẫn redirect về trang đăng nhập ngay cả khi có lỗi
+            setModalVisible(false);
+            router.replace("/");
+        }
     };
 
     return (
@@ -43,7 +133,9 @@ export default function ProfileScreen() {
                         resizeMode="cover"
                     />
                 </View>
-                <Text style={styles.name}>{username}</Text>
+                <Text style={styles.name}>
+                    {loading ? "Đang tải..." : username}
+                </Text>
             </SafeAreaView>
             <View style={mainStyles.bottomeSheet}>
                 <TouchableOpacity

@@ -53,6 +53,12 @@ export const getCategoryByType = async (familyId:string, type: 'income' | 'expen
     field:'type', operator: '==', value: type
   }]);
 };
+//
+export const getCategoryByName = async (name: string): Promise<Category[] | null> =>{
+    return queryDocuments<Category>(COLLECTION_NAME,[{
+        field: 'name', operator: '==', value: name
+    }])
+};
 //cập nhật loại
 export const updateCategory = async( categoryId: string, categoryData: Partial<Category>)
 :Promise<void> =>{
@@ -69,3 +75,12 @@ export const listenToFamily = async(userId: string,callback: (user: Category | n
   const realtimeService = new RealtimeListenerService()
   return realtimeService.listenToDocument<Category>(COLLECTION_NAME, userId, callback);
 }
+//lấy hết data
+export const getAllCategories = async (): Promise<Category[]> => {
+  try {
+    return await getCollection<Category>(COLLECTION_NAME);
+  } catch (error) {
+    console.error('Lỗi khi lấy tất cả Category:', error);
+    throw error;
+  }
+};

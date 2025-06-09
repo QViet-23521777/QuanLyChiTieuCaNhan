@@ -9,6 +9,7 @@ import { useUser } from '../../../UserContext';
 import { User, Transaction } from '../../../models/types';
 import { getUserById } from '../../../QuanLyTaiChinh-backend/userServices'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import AddButton from "@/src/Components/AddButton";
 
 const HomeLayout = () => {
     const [userId, setUserId] = useState<string | null>(null);
@@ -39,7 +40,7 @@ const HomeLayout = () => {
                     headerShown: true,
                     headerTransparent: true,
                     headerLeft: () => <ProfileButton />,
-                    headerRight: () => <NotificationButton />,
+                    headerRight: () => <AddButton />,
                     headerTitleAlign: "center",
                 }}>
                 <Tabs.Screen

@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase/firestore';
-import { db } from '../BE/firebase';
+import { db } from '../firebaseConfig';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 //tạo ID duy nhất tuần tự
 export const generateSequentialId = (prefix?: string): string => {

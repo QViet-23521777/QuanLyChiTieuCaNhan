@@ -11,7 +11,9 @@ import TransactionItem from "./TransactionItem"; // Reuse từ phần trước
 import { User, Transaction } from "@/models/types"; // Giả sử bạn đã định nghĩa User trong models/types.ts
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getUserById } from "../../QuanLyTaiChinh-backend/userServices";
-import { getTransactionsByDate,getAllTransactions, getTransactionsByYear, getTransactionsByMonth, getTransactionsByUserId} from '@/QuanLyTaiChinh-backend/transactionServices'; // Giả sử bạn đã định nghĩa hàm này
+import { getTransactionsByDate,getAllTransactions, getTransactionsByYear, getTransactionsByMonth, getTransactionsByUserId
+    ,getTodayTransactions, getCurrentMonthTransactions,
+} from '@/QuanLyTaiChinh-backend/transactionServices'; // Giả sử bạn đã định nghĩa hàm này
 const filters = ["Ngày", "Tuần", "Tháng"];
 
 const allData = {
@@ -61,7 +63,7 @@ const TransactionScreen = () => {
                         
                     case "Tháng":
                         // Lấy transactions tháng hiện tại
-                        const currentMonth = currentDate.getMonth() + 1; // +1 vì getMonth() trả về 0-11
+                        const currentMonth = currentDate.getMonth() + 1 ; // +1 vì getMonth() trả về 0-11
                         const currentYear = currentDate.getFullYear();
                         trans = await getTransactionsByMonth(userId, currentMonth, currentYear);
                         break;

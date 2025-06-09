@@ -5,6 +5,7 @@ import TransactionScreen from '../../Components/TransactionSummary';
 import GreetingHeader from '../../Components/HomeHeader';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import mainStyles from '@/src/styles/mainStyle';
+import AddButton from '@/src/Components/AddButton';
 
 export default function HomeScreen() {
     return (
@@ -16,6 +17,7 @@ export default function HomeScreen() {
                 <SavingsGoalCard />
                 <TransactionScreen />
             </View>
+            <AddButton />
         </SafeAreaView>
     );
 }

@@ -68,3 +68,11 @@ export const listenToFamily = async(userId: string,callback: (user: Comment | nu
   const realtimeService = new RealtimeListenerService()
   return realtimeService.listenToDocument<Comment>(COLLECTION_NAME, userId, callback);
 }
+export const getCommentsByPostId = async (postId: string): Promise<Comment[]> => {
+  return await queryDocuments<Comment>(
+    'Comment',
+    [{ field: 'socialPostId', operator: '==', value: postId }],
+    'createdAt',
+    'asc'
+  );
+};

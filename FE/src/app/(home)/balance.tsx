@@ -5,6 +5,7 @@ import {
     FlatList,
     TouchableOpacity,
 } from "react-native";
+import React, { useState, useEffect, use } from "react";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import SavingsGoalCard from "@/src/Components/SavingGoalCard";
 import TransactionScreen from "@/src/Components/TransactionSummary";
@@ -13,7 +14,9 @@ import { Link } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import mainStyles from "@/src/styles/mainStyle";
 import GreetingHeader from "@/src/Components/HomeHeader";
-
+import { User, Transaction } from "@/models/types";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {  getTotalExpense, getTotalIncome, getTransactionsByUserId} from '@/QuanLyTaiChinh-backend/transactionServices'; 
 const data = {
     Thu: [
         { title: "Mua Sắm", time: "10:00 - 3/6", amount: 100000 },
@@ -30,6 +33,52 @@ const BalanceScreen = ({
     wallet = 5000000,
     expense = 3750000,
 }) => {
+    const [userId, setUserId] = useState<string | null>(null);
+      const [user, setUser] = useState<User | null>(null);
+      const [totalIncome, setTotalIncome] = useState<string>('0');
+      const [totalExpense, setTotalExpense] = useState<string>('0');
+    const [transactions, setTransactions] = useState<Transaction[] | null>([]); // Thay any bằng kiểu dữ liệu thực tế của bạn
+      
+      useEffect(() => {
+        const fetchUserId = async () => {
+            const id = await AsyncStorage.getItem('userId');
+            console.log('Fetched userId:', id); // Thêm dòng này
+            setUserId(id);
+        };
+        fetchUserId();
+    }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      if (userId) {
+        try {
+          const income = await getTotalIncome(userId);
+          const i = income.toString();
+          const expense = await getTotalExpense(userId);
+          const e = expense.toString();
+          setTotalIncome(i);
+          setTotalExpense(e);
+        } catch (error) {
+          console.error('Error fetching data:', error);
+        }
+      }
+    };
+    fetchData();
+  }, [userId]);
+  useEffect(() => {
+        const fetchTransactions = async () => {
+            if (userId) {
+                try {
+                    const trans: Transaction[] = await getTransactionsByUserId(userId);
+                    console.log('Fetched transactions:');
+                    setTransactions(trans); 
+                }
+                catch (error) {
+                    console.error('Error fetching transactions:', error);
+                }
+            }
+        };
+        fetchTransactions();
+    }, [userId]);
     return (
         <SafeAreaView style={mainStyles.container}>
             <SafeAreaView style={[mainStyles.topSheet, { padding: 0 }]}>
@@ -47,7 +96,7 @@ const BalanceScreen = ({
                             color="green"
                         />
                         <Text>Thu</Text>
-                        <Text>7500000</Text>
+                        <Text>{totalIncome}</Text>
                     </View>
                     <View style={styles.income}>
                         <MaterialCommunityIcons
@@ -56,7 +105,7 @@ const BalanceScreen = ({
                             color="red"
                         />
                         <Text>Chi</Text>
-                        <Text>3750000</Text>
+                        <Text>{totalExpense}</Text>
                     </View>
                 </View>
             </SafeAreaView>
@@ -66,11 +115,11 @@ const BalanceScreen = ({
                     <Link href="/transfer" style={{ flex: 1, textAlign: 'right' }}>See all</Link>
                 </View>
                 <FlatList
-                    data={data}
-                    renderItem={({ item }) => (
+                    data={transactions}
+                    renderItem={({item }) => (
                         <TransactionItem
-                            title={item.title}
-                            time={item.time}
+                            title={item.decription}
+                            time={0}
                             amount={item.amount}
                         />
                     )}

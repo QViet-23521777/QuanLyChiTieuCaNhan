@@ -22,6 +22,7 @@ const RootLayout = () => {
                 {/* <Stack.Screen name='OnBoarding2' options={{ headerShown: false }} /> */}
                 {/* <Stack.Screen name='login' options={{ headerShown: false }} /> */}
                 <Stack.Screen name='(home)' options={{ headerShown: false }} />
+                <Stack.Screen name='AddExpense' options={{ headerShown: true }} />
                 <Stack.Screen name='notification' options={{ headerShown: true, title: 'Notification' }} />
                 <Stack.Screen name='search' options={{ headerShown: true, title: 'Search' }} />
                 <Stack.Screen name='calendar' options={{ headerShown: true, title: 'Calendar' }} />
