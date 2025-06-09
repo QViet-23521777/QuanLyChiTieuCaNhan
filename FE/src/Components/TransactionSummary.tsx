@@ -11,7 +11,7 @@ import TransactionItem from "./TransactionItem"; // Reuse từ phần trước
 import { User, Transaction } from "@/models/types"; // Giả sử bạn đã định nghĩa User trong models/types.ts
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getUserById } from "../../QuanLyTaiChinh-backend/userServices";
-import { getTransactionsByDate, getTransactionsByYear, getTransactionsByMonth, getTransactionsByUserId} from '@/QuanLyTaiChinh-backend/transactionServices'; // Giả sử bạn đã định nghĩa hàm này
+import { getTransactionsByDate,getAllTransactions, getTransactionsByYear, getTransactionsByMonth, getTransactionsByUserId} from '@/QuanLyTaiChinh-backend/transactionServices'; // Giả sử bạn đã định nghĩa hàm này
 const filters = ["Ngày", "Tuần", "Tháng"];
 
 const allData = {
@@ -31,12 +31,12 @@ const allData = {
 };
 
 const TransactionScreen = () => {
-    const router = useRouter();
-    const { transactions, loading } = useCategory();
+    //const router = useRouter();
+    //const { transactions, loading } = useCategory();
     const [selectedFilter, setSelectedFilter] = useState("Tháng");
     const [userId, setUserId] = useState<string | null>(null);
     const [user, setUser] = useState<User | null>(null);
-    const [tránsactions, setTransactions] = useState<Transaction[] | null>([]); // Thay any bằng kiểu dữ liệu thực tế của bạn
+    const [transactions, setTransactions] = useState<Transaction[] | null>([]); // Thay any bằng kiểu dữ liệu thực tế của bạn
      useEffect(() => {
         const fetchUserId = async () => {
             const id = await AsyncStorage.getItem('userId');
@@ -50,6 +50,7 @@ const TransactionScreen = () => {
         if (userId) {
             try {
                 let trans: Transaction[] = [];
+                //trans = await getAllTransactions();
                 const currentDate = new Date();
                 
                 switch (selectedFilter) {
@@ -79,7 +80,7 @@ const TransactionScreen = () => {
                 }
                 
                 console.log(`Fetched ${selectedFilter} transactions:`, trans);
-                setTransactions(trans);
+                setTransactions(trans); 
             } catch (error) {
                 console.error('Error fetching transactions:', error);
                 setTransactions([]);
@@ -113,26 +114,33 @@ const TransactionScreen = () => {
             </View>
 
             <FlatList
-                data={transactions}
+                data={transactions} 
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => {
-                    let formattedTime = "";
+                    
+                    const date = new Date(item.date);
 
-                    if (item.date?.toDate) {
+                    /* if (item.date?.toString()) {
                         formattedTime = item.date
-                            .toDate()
-                            .toLocaleString("vi-VN");
+                            .toString()
+                            .toLocaleString();
                     } else if (item.date instanceof Date) {
                         formattedTime = item.date.toLocaleString("vi-VN");
                     } else {
                         formattedTime = String(item.date); // fallback
-                    }
+                    } */
+
+                    const formatted = date.toLocaleTimeString('vi-VN', {
+  hour: '2-digit',
+  minute: '2-digit',
+}) + ' - ' +
+date.toLocaleDateString('vi-VN');
 
                     return (
                         <TransactionItem
-                            title={item.description}
-                            time={formattedTime}
-                            amount={item.amount}
+                            title={item.decription}
+                            time={formatted}
+                            amount={item.amount} 
                         />
                     );
                 }}

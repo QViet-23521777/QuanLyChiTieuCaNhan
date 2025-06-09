@@ -56,7 +56,7 @@ export interface Transaction{
     userId: string;
     createdAt: Timestamp | Date;
     updatedAt: Timestamp | Date;
-}
+} 
 
 export interface Album{
     Id: string;
