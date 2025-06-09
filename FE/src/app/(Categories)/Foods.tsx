@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, FlatList} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Montserrat_700Bold, Montserrat_400Regular } from '@expo-google-fonts/montserrat';
 import { useRouter } from 'expo-router';
 import Outline from '@/src/Components/Outline';
 import CalendarPicker from '@/src/Components/Calendar';
-
+import { Transaction, User } from '@/models/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getTransactionsByCategory, getTransactionsByUserId } from '@/QuanLyTaiChinh-backend/transactionServices';
+import { getCategoryByName } from '@/QuanLyTaiChinh-backend/categoryServices';
+import TransactionItem from "@/src/Components/TransactionItem";
 const initialExpenses = [
   {
     id: 1,
@@ -55,7 +59,82 @@ export default function FoodsScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  // Fetch userId from AsyncStorage
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const id = await AsyncStorage.getItem("userId");
+        console.log("Fetched userId:", id);
+        setUserId(id);
+      } catch (error) {
+        console.error('Error fetching userId:', error);
+      }
+    };
+    fetchUserId();
+  }, []);
+
+  // Fetch transactions when userId is available
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (userId) {
+        try {
+          setLoading(true);
+          console.log("Starting to fetch transactions for userId:", userId);
+          
+          const cat = await getCategoryByName('Ăn Uống');
+          console.log("Category response:", cat);
+          
+          if (!cat || cat.length === 0) {
+            console.log("No category found with name 'Ăn uống'");
+            setTransactions([]);
+            return;
+          }
+          
+          const category = cat[0];
+          console.log("Found category:", category);
+          
+          // Kiểm tra các thuộc tính có thể có của category
+          const categoryId = category.id || category.id;
+          console.log("Category ID:", categoryId);  
+          
+          if (!categoryId) {
+            console.log("Category ID is undefined. Category object:", category);
+            console.log("Available keys:", Object.keys(category));
+            setTransactions([]);
+            return;
+          }
+          
+          console.log("Using category ID:", categoryId);
+          const trans = await getTransactionsByCategory(categoryId);
+          
+          if (!trans || trans.length === 0) {
+            console.log("No transactions found for category 'Ăn uống'");
+            setTransactions([]);
+            return;
+          }
+          
+          setTransactions(trans);
+          console.log('Fetched transactions for category:', trans.length);
+        } catch (error) {
+          console.error('Error fetching transactions:', error);
+          //console.error('Error details:', e.message);
+          setTransactions([]);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        console.log("No userId available");
+        setLoading(false);
+      }
+    };
+    
+    fetchTransactions();
+  }, [userId]);
   if (!fontsLoaded) return null;
 
   // Filter expenses
@@ -77,13 +156,13 @@ export default function FoodsScreen() {
   return (
     <Outline>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/Categories/Categories')}>
+        {/* <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/Categories/Categories')}>
           <Ionicons name="arrow-back" size={24} color="#7EC6FF" />
         </TouchableOpacity>
-        <Text style={styles.header}>Ăn Uống</Text>
+        <Text style={styles.header}>Ăn Uống</Text> */}
         <View style={{ flex: 1 }} />
       </View>
-      <View style={styles.timeRow}>
+      {/* <View style={styles.timeRow}>
         <TouchableOpacity
           style={[styles.timeToggle, mode === 'month' && styles.timeToggleActive]}
           onPress={() => setMode('month')}
@@ -100,8 +179,8 @@ export default function FoodsScreen() {
             Theo ngày
           </Text>
         </TouchableOpacity>
-      </View>
-      <View style={styles.monthRow}>
+      </View> */}
+      {/* <View style={styles.monthRow}>
         <CalendarPicker
           mode={mode}
           selectedDate={selectedDate}
@@ -112,34 +191,57 @@ export default function FoodsScreen() {
           onYearChange={setSelectedYear}
           style={{}}
         />
-      </View>
-      <ScrollView>
-        {filteredExpenses.length === 0 && (
+      </View> */}
+      {/* <ScrollView> */}
+        {/* {filteredExpenses.length === 0 && (
           <Text style={{ textAlign: 'center', color: '#888', marginTop: 24 }}>Không có dữ liệu</Text>
         )}
-        {filteredExpenses.map(exp => (
-          <View key={exp.id} style={styles.expenseRow}>
-            <View style={styles.iconCircle}>
-              <Ionicons name="restaurant-outline" size={28} color="#fff" />
-            </View>
-            <View style={{ flex: 1, marginLeft: 8 }}>
-              <Text style={styles.expenseName}>{exp.name}</Text>
-              <Text style={styles.expenseTime}>
-                {exp.time} - {exp.date}/{exp.month}
-              </Text>
-            </View>
-            <Text style={styles.expenseAmount}>
-              {exp.amount.toLocaleString('vi-VN')}
-            </Text>
-          </View>
-        ))}
-      </ScrollView>
-      <TouchableOpacity
+        {filteredExpenses.map(exp => ( */}
+          {/* // <View key={exp.id} style={styles.expenseRow}>
+          //   <View style={styles.iconCircle}>
+          //     <Ionicons name="restaurant-outline" size={28} color="#fff" />
+          //   </View>
+          //   <View style={{ flex: 1, marginLeft: 8 }}>
+          //     <Text style={styles.expenseName}>{transactions.}</Text>
+          //     <Text style={styles.expenseTime}>
+          //       {exp.time} - {exp.date}/{exp.month}
+          //     </Text>
+          //   </View>
+          //   <Text style={styles.expenseAmount}>
+          //     {exp.amount.toLocaleString('vi-VN')}
+          //   </Text>
+          // </View> */}
+          <FlatList
+                data={transactions}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item }) => {
+                    const date = item.date.toDate();
+
+                    const formatted =
+                        date.toLocaleTimeString("vi-VN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        }) +
+                        " - " +
+                        date.toLocaleDateString("vi-VN");
+
+                    return (
+                        <TransactionItem
+                            title={item.decription}
+                            time={formatted}
+                            amount={item.amount}
+                        />
+                    );
+                }}
+                contentContainerStyle={{ paddingTop: 10 }}
+            />
+      {/* </ScrollView> */}
+      {/* <TouchableOpacity
         style={styles.addBtn}
         onPress={() => router.push('/(Categories)/AddExpense')}
       >
         <Text style={styles.addBtnText}>Thêm Khoản Chi</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </Outline>
   );
 }

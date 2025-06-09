@@ -55,9 +55,9 @@ export default function GroceriesScreen() {
   return (
     <Outline>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/Categories/Categories')}>
+        {/* <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/Categories/Categories')}>
           <Ionicons name="arrow-back" size={24} color="#7EC6FF" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <Text style={styles.header}>Mua Sắm</Text>
         <View style={{ flex: 1 }} />
       </View>
@@ -112,12 +112,12 @@ export default function GroceriesScreen() {
           </View>
         ))}
       </ScrollView>
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={styles.addBtn}
         onPress={() => router.push('/Categories/AddExpense?defaultCategory=Mua%20Sắm')}
       >
         <Text style={styles.addBtnText}>Thêm Khoản Chi</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </Outline>
   );
 }

@@ -1,23 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { useFonts, Montserrat_700Bold, Montserrat_400Regular } from '@expo-google-fonts/montserrat';
 import { useRouter } from 'expo-router';
 import Outline from '@/src/Components/Outline';
 import CalendarPicker from '@/src/Components/Calendar';
-
-const initialExpenses = [
-  {
-    id: 1,
-    name: 'Thue Tro',
-    time: '14:00',
-    date: '11',
-    month: '3',
-    year: '2025',
-    amount: 1,
-  },
-  // Add more dummy data if needed
-];
+import { Transaction, User } from '@/models/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getTransactionsByCategory, getTransactionsByUserId } from '@/QuanLyTaiChinh-backend/transactionServices';
+import { getCategoryByName } from '@/QuanLyTaiChinh-backend/categoryServices';
 
 export default function GroceriesScreen() {
   const [fontsLoaded] = useFonts({
@@ -25,7 +16,6 @@ export default function GroceriesScreen() {
     Montserrat_400Regular,
   });
 
-  const [expenses] = useState(initialExpenses);
   const router = useRouter();
 
   // Time picker state
@@ -33,34 +23,145 @@ export default function GroceriesScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch userId from AsyncStorage
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const id = await AsyncStorage.getItem("userId");
+        console.log("Fetched userId:", id);
+        setUserId(id);
+      } catch (error) {
+        console.error('Error fetching userId:', error);
+      }
+    };
+    fetchUserId();
+  }, []);
+
+  // Fetch transactions when userId is available
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (userId) {
+        try {
+          setLoading(true);
+          console.log("Starting to fetch transactions for userId:", userId);
+          
+          const cat = await getCategoryByName('Nơi Ở');
+          console.log("Category response:", cat);
+          
+          if (!cat || cat.length === 0) {
+            console.log("No category found with name 'Nơi Ở'");
+            setTransactions([]);
+            return;
+          }
+          
+          const category = cat[0];
+          console.log("Found category:", category);
+          
+          // Kiểm tra các thuộc tính có thể có của category
+          const categoryId = category.id || category.id;;
+          
+          if (!categoryId) {
+            console.log("Category ID is undefined. Category object:", category);
+            console.log("Available keys:", Object.keys(category));
+            setTransactions([]);
+            return;
+          }
+          
+          console.log("Using category ID:", categoryId);
+          const trans = await getTransactionsByCategory(categoryId);
+          
+          if (!trans || trans.length === 0) {
+            console.log("No transactions found for category 'Nơi Ở'");
+            setTransactions([]);
+            return;
+          }
+          
+          setTransactions(trans);
+          console.log('Fetched transactions for category:', trans.length);
+        } catch (error) {
+          console.error('Error fetching transactions:', error);
+          //console.error('Error details:', e.message);
+          setTransactions([]);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        console.log("No userId available");
+        setLoading(false);
+      }
+    };
+    
+    fetchTransactions();
+  }, [userId]);
+
+  // Hàm format date từ Timestamp hoặc Date
+  const formatDate = (date: any) => {
+    let jsDate: Date;
+    
+    if (date?.toDate) {
+      // Firestore Timestamp
+      jsDate = date.toDate();
+    } else if (date instanceof Date) {
+      jsDate = date;
+    } else {
+      jsDate = new Date();
+    }
+    
+    return {
+      day: jsDate.getDate(),
+      month: jsDate.getMonth() + 1,
+      year: jsDate.getFullYear(),
+      time: jsDate.toLocaleTimeString('vi-VN', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      })
+    };
+  };
+
+  // Hàm lọc transactions theo mode và date được chọn
+  const getFilteredTransactions = () => {
+    return transactions.filter(transaction => {
+      const transactionDate = formatDate(transaction.createdAt);
+      
+      if (mode === 'month') {
+        return (
+          transactionDate.month === selectedMonth + 1 &&
+          transactionDate.year === selectedYear
+        );
+      } else {
+        // mode === 'day'
+        const selectedDay = selectedDate.getDate();
+        const selectedMonthDay = selectedDate.getMonth() + 1;
+        const selectedYearDay = selectedDate.getFullYear();
+        
+        return (
+          transactionDate.day === selectedDay &&
+          transactionDate.month === selectedMonthDay &&
+          transactionDate.year === selectedYearDay
+        );
+      }
+    });
+  };
+
+  const filteredTransactions = getFilteredTransactions();
 
   if (!fontsLoaded) return null;
-
-  // Filter expenses
-  const filteredExpenses = expenses.filter(exp => {
-    if (mode === 'day') {
-      return (
-        parseInt(exp.date) === selectedDate.getDate() &&
-        parseInt(exp.month) === selectedDate.getMonth() + 1 &&
-        parseInt(exp.year) === selectedDate.getFullYear()
-      );
-    } else {
-      return (
-        parseInt(exp.month) === selectedMonth + 1 &&
-        parseInt(exp.year) === selectedYear
-      );
-    }
-  });
 
   return (
     <Outline>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/Categories/Categories')}>
+        {/* <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/Categories/Categories')}>
           <Ionicons name="arrow-back" size={24} color="#7EC6FF" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <Text style={styles.header}>Nơi Ở</Text>
         <View style={{ flex: 1 }} />
       </View>
+
       <View style={styles.timeRow}>
         <TouchableOpacity
           style={[styles.timeToggle, mode === 'month' && styles.timeToggleActive]}
@@ -79,6 +180,7 @@ export default function GroceriesScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
       <View style={styles.monthRow}>
         <CalendarPicker
           mode={mode}
@@ -91,33 +193,49 @@ export default function GroceriesScreen() {
           style={{}}
         />
       </View>
+
       <ScrollView>
-        {filteredExpenses.length === 0 && (
-          <Text style={{ textAlign: 'center', color: '#888', marginTop: 24 }}>Không có dữ liệu</Text>
+        {loading && (
+          <Text style={{ textAlign: 'center', color: '#888', marginTop: 24 }}>
+            Đang tải dữ liệu...
+          </Text>
         )}
-        {filteredExpenses.map(exp => (
-          <View key={exp.id} style={styles.expenseRow}>
-            <View style={styles.iconCircle}>
-              <Ionicons name="home-outline" size={28} color="#fff" />
-            </View>
-            <View style={{ flex: 1, marginLeft: 8 }}>
-              <Text style={styles.expenseName}>{exp.name}</Text>
-              <Text style={styles.expenseTime}>
-                {exp.time} - {exp.date}/{exp.month}
+        
+        {!loading && filteredTransactions.length === 0 && (
+          <Text style={{ textAlign: 'center', color: '#888', marginTop: 24 }}>
+            Không có dữ liệu
+          </Text>
+        )}
+        
+        {!loading && filteredTransactions.map(transaction => {
+          const dateInfo = formatDate(transaction.createdAt);
+          return (
+            <View key={transaction.Id} style={styles.expenseRow}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="home-outline" size={28} color="#fff" />
+              </View>
+              <View style={{ flex: 1, marginLeft: 8 }}>
+                <Text style={styles.expenseName}>
+                  {transaction.decription || 'Chi tiêu nơi ở'}
+                </Text>
+                <Text style={styles.expenseTime}>
+                  {dateInfo.time} - {dateInfo.day}/{dateInfo.month}/{dateInfo.year}
+                </Text>
+              </View>
+              <Text style={styles.expenseAmount}>
+                {transaction.amount.toLocaleString('vi-VN')} đ
               </Text>
             </View>
-            <Text style={styles.expenseAmount}>
-              {exp.amount.toLocaleString('vi-VN')}
-            </Text>
-          </View>
-        ))}
+          );
+        })}
       </ScrollView>
-      <TouchableOpacity
+
+      {/* <TouchableOpacity
         style={styles.addBtn}
         onPress={() => router.push('/Categories/AddExpense?defaultCategory=Nơi%20Ở')}
       >
         <Text style={styles.addBtnText}>Thêm Khoản Chi</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </Outline>
   );
 }

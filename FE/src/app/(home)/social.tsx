@@ -11,6 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getPostByFamilyId } from '@/QuanLyTaiChinh-backend/socialPost';
 import { getUserById } from '@/QuanLyTaiChinh-backend/userServices';
 import { getCommentById, getCommentsByPostId } from '@/QuanLyTaiChinh-backend/commentServices';
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 // Thêm type để xử lý Timestamp từ Firebase
 interface FirebaseTimestamp {
@@ -22,6 +23,8 @@ interface FirebaseTimestamp {
 interface PostWithComments extends SocialPost {
   comments: Comment[];
 }
+
+// Đã chuyển các state này vào bên trong PostItem component để sử dụng biến post đúng scope
 
 // Component để render từng comment
 const CommentItem = ({ comment }: { comment: Comment }) => {
@@ -60,11 +63,17 @@ const CommentItem = ({ comment }: { comment: Comment }) => {
 };
 
 // Component để render từng post với thông tin chi tiết
+
 const PostItem = ({ post, comments }: { post: SocialPost, comments: Comment[] }) => {
   const [showComments, setShowComments] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(post.numlike || 0);
 
+  const handleLikePress = () => {
+    setLiked(!liked);
+    setLikeCount(prev => liked ? prev - 1 : prev + 1);
+  };
   const formatDate = (date: Date | FirebaseTimestamp | string | number) => {
-    if (!date) return '';
     
     let d: Date;
     
@@ -135,12 +144,27 @@ const PostItem = ({ post, comments }: { post: SocialPost, comments: Comment[] })
 
       {/* Thống kê likes và comments */}
       <View style={styles.postStats}>
+        <TouchableOpacity
+        style={{ flexDirection: 'row', alignItems: 'center' }}
+        onPress={handleLikePress}
+      >
+        <MaterialCommunityIcons
+          name={liked ? 'cards-heart' : 'cards-heart-outline'}
+          size={24}
+          color={liked ? 'red' : '#000'}
+        />
+        <Text style={styles.postStatsText}>{likeCount}</Text>
+      </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <MaterialCommunityIcons
+              name={"comment"} // 👈 Đổi icon tại đây
+              size={24}
+              color="#000"
+            />
         <Text style={styles.postStatsText}>
-          👍 {post.numlike || 0} lượt thích
+           {post.numcom || 0}
         </Text>
-        <Text style={styles.postStatsText}>
-          💬 {post.numcom || 0} bình luận
-        </Text>
+        </View>
       </View>
 
       {/* Nút hiển thị/ẩn comments */}
@@ -363,7 +387,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#f0f0f0',
   },
   postStatsText: {
-    fontSize: 12,
+    fontSize: 15,
     color: '#666',
   },
   showCommentsButton: {
