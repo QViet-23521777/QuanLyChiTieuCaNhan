@@ -6,7 +6,7 @@ import { CategoryProvider } from '../context/categoryContext';
 
 const RootLayout = () => {
     return (
-        <CategoryProvider familyId="exampleFamilyId">
+        <CategoryProvider>
             <Stack
                 screenOptions={{
                     headerTransparent: true,

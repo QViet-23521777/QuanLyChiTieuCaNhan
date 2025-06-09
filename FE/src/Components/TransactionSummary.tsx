@@ -8,6 +8,8 @@ import {
     SafeAreaView,
 } from "react-native";
 import TransactionItem from "./TransactionItem"; // Reuse từ phần trước
+import { useRouter } from "expo-router";
+import { useCategory } from "../context/categoryContext";
 
 const filters = ["Ngày", "Tuần", "Tháng"];
 
@@ -28,6 +30,8 @@ const allData = {
 };
 
 const TransactionScreen = () => {
+    const router = useRouter();
+    const { transactions, loading } = useCategory();
     const [selectedFilter, setSelectedFilter] = useState("Tháng");
 
     return (
@@ -55,15 +59,29 @@ const TransactionScreen = () => {
             </View>
 
             <FlatList
-                data={allData[selectedFilter]}
+                data={transactions}
                 keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item }) => (
-                    <TransactionItem
-                        title={item.title}
-                        time={item.time}
-                        amount={item.amount}
-                    />
-                )}
+                renderItem={({ item }) => {
+                    let formattedTime = "";
+
+                    if (item.date?.toDate) {
+                        formattedTime = item.date
+                            .toDate()
+                            .toLocaleString("vi-VN");
+                    } else if (item.date instanceof Date) {
+                        formattedTime = item.date.toLocaleString("vi-VN");
+                    } else {
+                        formattedTime = String(item.date); // fallback
+                    }
+
+                    return (
+                        <TransactionItem
+                            title={item.description}
+                            time={formattedTime}
+                            amount={item.amount}
+                        />
+                    );
+                }}
                 contentContainerStyle={{ paddingTop: 10 }}
             />
         </SafeAreaView>
