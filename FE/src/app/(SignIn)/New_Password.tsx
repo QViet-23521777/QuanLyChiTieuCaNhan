@@ -4,7 +4,9 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts, Montserrat_400Regular, Montserrat_700Bold } from '@expo-google-fonts/montserrat';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ConfirmPage from '../Components/ConfirmPage';
+import ConfirmPage from '../../Components/ConfirmPage';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import mainStyles from '@/src/styles/mainStyle';
 
 export default function NewPasswordScreen() {
   const [showPassword, setShowPassword] = useState(false);
@@ -62,11 +64,9 @@ export default function NewPasswordScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.topBackground}>
-        <Text style={styles.header}>Mật Khẩu Mới</Text>
-      </View>
-      <View style={styles.formContainer}>
+    <SafeAreaView style={mainStyles.container}>
+      <SafeAreaView style={[mainStyles.topSheet, {padding: 0}]}/>
+      <View style={mainStyles.bottomeSheet}>
         <Text style={styles.label}>Nhập mật khẩu mới</Text>
         <View style={styles.passwordRow}>
           <TextInput
@@ -100,7 +100,7 @@ export default function NewPasswordScreen() {
         </TouchableOpacity>
       </View>
       <StatusBar style="auto" />
-    </View>
+    </SafeAreaView>
   );
 }
 

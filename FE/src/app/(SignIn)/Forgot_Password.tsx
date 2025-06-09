@@ -4,6 +4,8 @@ import { StatusBar } from 'expo-status-bar';
 import { FontAwesome } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { useFonts, Montserrat_400Regular, Montserrat_700Bold } from '@expo-google-fonts/montserrat';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import mainStyles from '@/src/styles/mainStyle';
 
 export default function ForgotPasswordScreen() {
     const [email, setEmail] = useState('');
@@ -16,11 +18,9 @@ export default function ForgotPasswordScreen() {
     return null; // or <AppLoading />
     }
   return (
-    <View style={styles.container}>
-      <View style={styles.topBackground}>
-        <Text style={styles.header}>Quên Mật Khẩu</Text>
-      </View>
-      <View style={styles.formContainer}>
+    <SafeAreaView style={mainStyles.container}>
+      <View style={mainStyles.topSheet}/>
+      <View style={mainStyles.bottomeSheet}>
         <Text style={styles.title}>Thay đổi mật khẩu</Text>
         <Text style={styles.desc}>Mật khẩu cần có:</Text>
         <Text style={styles.bullet}>• Tối thiểu 8 kí tự,</Text>
@@ -38,7 +38,7 @@ export default function ForgotPasswordScreen() {
           <Text style={styles.nextBtnText}>Bước tiếp theo</Text>
         </TouchableOpacity>
         </Link>
-        <Text style={styles.orText}>Hoặc đăng nhập bằng</Text>
+        {/* <Text style={styles.orText}>Hoặc đăng nhập bằng</Text>
         <View style={styles.socialRow}>
           <FontAwesome name="facebook-official" size={32} color="#4A90E2" style={{ marginHorizontal: 12 }} />
           <FontAwesome name="google" size={32} color="#4A90E2" style={{ marginHorizontal: 12 }} />
@@ -46,10 +46,10 @@ export default function ForgotPasswordScreen() {
         <View style={styles.bottomRow}>
           <Text style={styles.bottomText}>Không có tài khoản? </Text>
           <Link href="/Create_Account" style={styles.registerLink}>Đăng kí</Link>
-        </View>
+        </View> */}
       </View>
       <StatusBar style="auto" />
-    </View>
+    </SafeAreaView>
   );
 }
 

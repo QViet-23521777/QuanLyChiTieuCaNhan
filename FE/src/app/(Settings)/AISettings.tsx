@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Switch } from 'react-native';
 import SettingTemplate from '@/src/Components/SettingTemplate';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import mainStyles from '@/src/styles/mainStyle';
 
 export default function AISettingsScreen() {
   const [noti, setNoti] = useState(true);
@@ -12,7 +14,10 @@ export default function AISettingsScreen() {
   const [lowBalance, setLowBalance] = useState(false);
 
   return (
-    <SettingTemplate title="AI ChatBot" style={{}}>
+    <SafeAreaView style={mainStyles.container}>
+      <SafeAreaView style={[mainStyles.topSheet, { padding: 0 }]} />
+      <View style={mainStyles.bottomeSheet}>
+
       <View style={styles.row}>
         <Text style={styles.label}>Thông báo</Text>
         <Switch
@@ -76,7 +81,8 @@ export default function AISettingsScreen() {
           thumbColor="#fff"
         />
       </View>
-    </SettingTemplate>
+      </View>
+    </SafeAreaView>
   );
 }
 

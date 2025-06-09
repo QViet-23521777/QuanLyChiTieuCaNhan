@@ -4,6 +4,7 @@ import NotificationButton from "@/src/Components/NotificationButton";
 import ProfileButton from "@/src/Components/ProfileButton";
 import { CategoryProvider } from '../context/categoryContext';
 import { UserProvider } from '@/UserContext';
+import AddButton from '@/src/Components/AddButton';
 
 const RootLayout = () => {
     return (
@@ -14,20 +15,22 @@ const RootLayout = () => {
                 screenOptions={{
                     headerTransparent: true,
                     // headerLeft: () => <ProfileButton />,
-                    headerRight: () => <NotificationButton />,
+                    headerRight: () => <AddButton />,
                     headerTitleAlign: 'center',
                 }}>
                 {/* <Stack.Screen name='index' options={{ headerShown: false }} /> */}
                 {/* <Stack.Screen name='OnBoarding1' options={{ headerShown: false }} /> */}
                 {/* <Stack.Screen name='OnBoarding2' options={{ headerShown: false }} /> */}
-                {/* <Stack.Screen name='login' options={{ headerShown: false }} /> */}
+                <Stack.Screen name='(SignIn)' options={{ headerShown: false }} />
                 <Stack.Screen name='(home)' options={{ headerShown: false }} />
-                <Stack.Screen name='AddExpense' options={{ headerShown: true }} />
-                <Stack.Screen name='notification' options={{ headerShown: true, title: 'Notification' }} />
-                <Stack.Screen name='search' options={{ headerShown: true, title: 'Search' }} />
-                <Stack.Screen name='calendar' options={{ headerShown: true, title: 'Calendar' }} />
-                <Stack.Screen name='transfer' options={{ headerShown: true, title: 'Transfer' }} />
-                <Stack.Screen name='groups' options={{ headerShown: true, title: 'Groups' }} />
+                <Stack.Screen name='(Categories)' options={{ headerShown: false }} />
+                <Stack.Screen name='(Settings)' options={{ headerShown: false }} />
+                <Stack.Screen name='AddExpense' options={{ headerShown: true, title: 'Thêm' }} />
+                <Stack.Screen name='notification' options={{ headerShown: true, title: 'Thông báo' }} />
+                <Stack.Screen name='search' options={{ headerShown: true, title: 'Tìm kiếm' }} />
+                <Stack.Screen name='calendar' options={{ headerShown: true, title: 'Lịch' }} />
+                <Stack.Screen name='transfer' options={{ headerShown: true, title: 'Giao dịch' }} />
+                <Stack.Screen name='groups' options={{ headerShown: true, title: 'Nhóm' }} />
             </Stack>
         </CategoryProvider>
     </UserProvider>

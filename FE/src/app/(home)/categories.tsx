@@ -87,7 +87,7 @@ export default function CategoriesScreen() {
                 router.push("../Gift");
                 break;
             case "Tiết Kiệm":
-                router.push("../Saving");
+                router.push("../Entertain");
                 break;
             case "Giải Trí":
                 router.push("../Entertain");
@@ -121,12 +121,12 @@ export default function CategoriesScreen() {
                     ))}
 
                     {/* Nút thêm */}
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                         style={styles.catBtn}
                         onPress={() => setShowAddModal(true)}>
                         <Entypo name="plus" size={36} color="#fff" />
                         <Text style={styles.catLabel}>Thêm</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                 </ScrollView>
             </View>
 

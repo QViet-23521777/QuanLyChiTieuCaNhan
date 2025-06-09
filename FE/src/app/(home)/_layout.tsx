@@ -46,7 +46,7 @@ const HomeLayout = () => {
                 <Tabs.Screen
                     name="index"
                     options={{
-                        title: "Home",
+                        title: "Trang chủ",
                         headerTitle: "Chào " + (user?.name || "123"),
                         headerTitleStyle: {
                             fontSize: 20,
@@ -65,7 +65,7 @@ const HomeLayout = () => {
                 <Tabs.Screen
                     name="statistics"
                     options={{
-                        title: "Statistics",
+                        title: "Phân tích",
                         tabBarIcon: ({ color }) => (
                             <MaterialCommunityIcons
                                 name="chart-box-outline"
@@ -78,7 +78,7 @@ const HomeLayout = () => {
                 <Tabs.Screen
                     name="balance"
                     options={{
-                        title: "Balance",
+                        title: "Số dư",
                         tabBarIcon: ({ color }) => (
                             <MaterialCommunityIcons
                                 name="bank-transfer"
@@ -91,7 +91,7 @@ const HomeLayout = () => {
                 <Tabs.Screen
                     name="categories"
                     options={{
-                        title: "Categories",
+                        title: "Phân loại",
                         tabBarIcon: ({ color }) => (
                             <MaterialCommunityIcons
                                 name="layers-outline"
@@ -104,7 +104,7 @@ const HomeLayout = () => {
                 <Tabs.Screen
                     name="social"
                     options={{
-                        title: "Social",
+                        title: "Cộng đồng",
                         tabBarIcon: ({ color }) => (
                             <MaterialCommunityIcons
                                 name="account-group-outline"

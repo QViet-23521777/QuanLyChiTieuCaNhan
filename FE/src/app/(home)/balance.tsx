@@ -115,15 +115,29 @@ const BalanceScreen = ({
                     <Link href="/transfer" style={{ flex: 1, textAlign: 'right' }}>See all</Link>
                 </View>
                 <FlatList
-                    data={transactions}
-                    renderItem={({item }) => (
+                data={transactions}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item }) => {
+                    const date = item.date.toDate();
+
+                    const formatted =
+                        date.toLocaleTimeString("vi-VN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        }) +
+                        " - " +
+                        date.toLocaleDateString("vi-VN");
+
+                    return (
                         <TransactionItem
                             title={item.decription}
-                            time={0}
+                            time={formatted}
                             amount={item.amount}
                         />
-                    )}
-                />
+                    );
+                }}
+                contentContainerStyle={{ paddingTop: 10 }}
+            />
             </View>
         </SafeAreaView>
     );

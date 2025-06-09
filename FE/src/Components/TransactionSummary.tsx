@@ -148,7 +148,7 @@ export default TransactionScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#E8FFF0",
+        backgroundColor: "white",
         padding: 16,
     },
     filterRow: {

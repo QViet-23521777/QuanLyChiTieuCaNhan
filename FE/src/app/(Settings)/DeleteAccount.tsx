@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import SettingTemplate from '@/src/Components/SettingTemplate';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import mainStyles from '@/src/styles/mainStyle';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function DeleteAccountScreen() {
   const [password, setPassword] = useState('');
@@ -28,7 +30,10 @@ export default function DeleteAccountScreen() {
   };
 
   return (
-    <SettingTemplate title="Xoá Tài Khoản" style={{}}>
+    <SafeAreaView style={mainStyles.container}>
+      <SafeAreaView style={[mainStyles.topSheet, { padding: 0 }]} />
+      <View style={mainStyles.bottomeSheet}>
+
       <View style={styles.container}>
         <Text style={styles.question}>Bạn có chắc muốn xoá tài khoản?</Text>
         <View style={styles.infoBox}>
@@ -64,10 +69,10 @@ export default function DeleteAccountScreen() {
           </TouchableOpacity>
         </View>
         <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-          <Text style={styles.deleteButtonText}>Yes, Delete Account</Text>
+          <Text style={styles.deleteButtonText}>Đồng ý</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}>
-          <Text style={styles.cancelButtonText}>Cancel</Text>
+          <Text style={styles.cancelButtonText}>Hủy</Text>
         </TouchableOpacity>
       </View>
       {/* Modal xác nhận xoá tài khoản */}
@@ -93,7 +98,8 @@ export default function DeleteAccountScreen() {
           </View>
         </View>
       </Modal>
-    </SettingTemplate>
+      </View>
+    </SafeAreaView>
   );
 }
 

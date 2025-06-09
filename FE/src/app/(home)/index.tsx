@@ -22,7 +22,7 @@ export default function HomeScreen() {
 
     return (
         <SafeAreaView style={mainStyles.container}>
-            <SafeAreaView style={[mainStyles.topSheet, {padding: 24}]}>
+            <SafeAreaView style={[mainStyles.topSheet, {padding: 16}]}>
                 <GreetingHeader />
             </SafeAreaView>
             <View style={mainStyles.bottomeSheet}>

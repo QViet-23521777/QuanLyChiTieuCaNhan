@@ -15,12 +15,12 @@ import {
     Montserrat_700Bold,
 } from "@expo-google-fonts/montserrat";
 import mainStyles from "@/src/styles/mainStyle";
-import {useUser} from '../../UserContext'; // Import UserContext để sử dụng Id người dùng
-import {login} from '../../QuanLyTaiChinh-backend/userServices'; // Đảm bảo đường dẫn này đúng với cấu trúc dự án của bạn
+import {useUser} from '../../../UserContext'; // Import UserContext để sử dụng Id người dùng
+import {login} from '../../../QuanLyTaiChinh-backend/userServices'; // Đảm bảo đường dẫn này đúng với cấu trúc dự án của bạn
 import { router } from 'expo-router'; // nếu bạn dùng expo-router
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User } from '../../models/types'; // Import kiểu User nếu cần
-import { getUserById } from '../../QuanLyTaiChinh-backend/userServices'; // Import hàm lấy thông tin người dùng
+import { User } from '../../../models/types'; // Import kiểu User nếu cần
+import { getUserById } from '../../../QuanLyTaiChinh-backend/userServices'; // Import hàm lấy thông tin người dùng
 export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState('');
@@ -63,7 +63,7 @@ export default function Login() {
     }
     return (
         <View style={mainStyles.container}>
-            <View style={mainStyles.topSheet}>
+            <View style={[mainStyles.topSheet, {alignItems: 'center'}]}>
                 <Text style={mainStyles.title}>Đăng Nhập</Text>
             </View>
             <View style={mainStyles.bottomeSheet}>
@@ -127,8 +127,8 @@ export default function Login() {
                         <Text style={styles.registerBtnText}>Đăng Kí</Text>
                     </TouchableOpacity>
                 </Link>
-                <Text style={styles.orText}>Hoặc đăng nhập bằng</Text>
-                <View style={styles.socialRow}>
+                {/* <Text style={styles.orText}>Hoặc đăng nhập bằng</Text> */}
+                {/* <View style={styles.socialRow}>
                     <FontAwesome
                         name="facebook-official"
                         size={32}
@@ -141,7 +141,7 @@ export default function Login() {
                         color="#4A90E2"
                         style={{ marginHorizontal: 12 }}
                     />
-                </View>
+                </View> */}
             </View>
             <StatusBar style="auto" />
         </View>
