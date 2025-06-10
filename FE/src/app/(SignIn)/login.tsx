@@ -98,7 +98,7 @@ export default function Login() {
 
                 {error ? <Text style={{ color: 'red', marginTop: 10 }}>{error}</Text> : null}
 
-                <TouchableOpacity style={styles.fingerprintRow}>
+                {/* <TouchableOpacity style={styles.fingerprintRow}>
                     <Ionicons
                         name="finger-print-outline"
                         size={32}
@@ -110,7 +110,7 @@ export default function Login() {
                             vân tay
                         </Text>
                     </Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
                 {/* <Link href="/(home)" asChild> */}
                     <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
                         <Text style={styles.loginBtnText}>Đăng Nhập</Text>

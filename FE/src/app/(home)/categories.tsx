@@ -87,7 +87,7 @@ export default function CategoriesScreen() {
                 router.push("../Gift");
                 break;
             case "Tiết Kiệm":
-                router.push("../Entertain");
+                router.push("../Saving");
                 break;
             case "Giải Trí":
                 router.push("../Entertain");

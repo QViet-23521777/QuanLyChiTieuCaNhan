@@ -115,7 +115,7 @@ const TransactionScreen = () => {
                 ))}
             </View>
 
-            <FlatList
+            <FlatList scrollEnabled={true}
                 data={transactions}
                 keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) => {

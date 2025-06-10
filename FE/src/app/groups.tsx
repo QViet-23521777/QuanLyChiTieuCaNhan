@@ -77,9 +77,9 @@ const GroupsScreen: React.FC = () => {
           />
         ))}
 
-        <TouchableOpacity style={styles.fab}>
+        {/* <TouchableOpacity style={styles.fab}>
           <Ionicons name="add" size={32} color="#fff" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </SafeAreaView>
   );

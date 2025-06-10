@@ -15,13 +15,14 @@ const RootLayout = () => {
                 headerRight: () => <AddButton />,
                 headerTitleAlign: 'center',
             }}>
-            <Stack.Screen name='Foods' options={{ headerShown: true, title: 'Thức ăn' }} />
+            <Stack.Screen name='Foods' options={{ headerShown: true, title: 'Ăn uống' }} />
             <Stack.Screen name='Entertain' options={{ headerShown: true, title: 'Giải trí' }} />
-            <Stack.Screen name='Gift' options={{ headerShown: true, title: 'Gift' }} />
-            <Stack.Screen name='Groceries' options={{ headerShown: true, title: 'Gia dụng' }} />
+            <Stack.Screen name='Gift' options={{ headerShown: true, title: 'Quà tặng' }} />
+            <Stack.Screen name='Groceries' options={{ headerShown: true, title: 'Mua sắm' }} />
             <Stack.Screen name='Med' options={{ headerShown: true, title: 'Y tế' }} />
             <Stack.Screen name='Rent' options={{ headerShown: true, title: 'Nơi ở' }} />
             <Stack.Screen name='Transport' options={{ headerShown: true, title: 'Di chuyển' }} />
+            <Stack.Screen name='Saving' options={{ headerShown: true, title: 'Tiết kiệm' }} />
         </Stack>
     </UserProvider>
     )
