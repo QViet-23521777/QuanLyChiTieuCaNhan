@@ -18,10 +18,10 @@ const RootLayout = () => {
                     headerRight: () => <AddButton />,
                     headerTitleAlign: 'center',
                 }}>
-                {/* <Stack.Screen name='index' options={{ headerShown: false }} /> */}
-                {/* <Stack.Screen name='OnBoarding1' options={{ headerShown: false }} /> */}
-                {/* <Stack.Screen name='OnBoarding2' options={{ headerShown: false }} /> */}
-                {/* <Stack.Screen name='(SignIn)' options={{ headerShown: false }} /> */}
+                <Stack.Screen name='index' options={{ headerShown: false }} />
+                <Stack.Screen name='OnBoarding1' options={{ headerShown: false }} />
+                <Stack.Screen name='OnBoarding2' options={{ headerShown: false }} />
+                <Stack.Screen name='(SignIn)' options={{ headerShown: false }} />
                 <Stack.Screen name='(home)' options={{ headerShown: false }} />
                 <Stack.Screen name='(Categories)' options={{ headerShown: false }} />
                 <Stack.Screen name='(Settings)' options={{ headerShown: false }} />
